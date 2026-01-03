@@ -16,8 +16,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <nav className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-8">
@@ -29,13 +29,13 @@ export default async function DashboardLayout({
               <div className="hidden md:flex gap-6">
                 <Link 
                   href="/dashboard" 
-                  className="text-gray-700 hover:text-gray-900 font-medium"
+                  className="text-foreground/70 hover:text-foreground font-medium transition-colors"
                 >
                   Snippets
                 </Link>
                 <Link 
                   href="/dashboard/collections" 
-                  className="text-gray-700 hover:text-gray-900 font-medium"
+                  className="text-foreground/70 hover:text-foreground font-medium transition-colors"
                 >
                   Collections
                 </Link>
@@ -45,13 +45,13 @@ export default async function DashboardLayout({
             <div className="flex items-center gap-4">
               <Link
                 href="/dashboard/snippets/new"
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Snippet</span>
               </Link>
               
-              <div className="flex items-center gap-2 text-sm text-gray-700">
+              <div className="flex items-center gap-2 text-sm text-foreground/70">
                 <span>{session.user.name || session.user.email}</span>
               </div>
               
@@ -63,8 +63,9 @@ export default async function DashboardLayout({
               >
                 <button
                   type="submit"
-                  className="p-2 text-gray-600 hover:text-gray-900"
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
                   title="Sign out"
+                  aria-label="Sign out"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
