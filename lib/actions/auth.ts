@@ -3,6 +3,7 @@
 import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { handleServerActionError } from "@/lib/utils/errors"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -57,15 +58,6 @@ export async function registerUser(formData: FormData): Promise<RegisterResult> 
 
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { error: error.errors[0]?.message ?? "Validation failed" }
-    }
-    
-    // Log unexpected errors in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("Registration error:", error)
-    }
-    
-    return { error: "Something went wrong. Please try again." }
+    return { error: handleServerActionError(error) }
   }
 }
