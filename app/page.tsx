@@ -3,8 +3,9 @@ import { Code2, Share2, Search, Lock } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <nav className="border-b">
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)]" />
+      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
@@ -29,12 +30,12 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-primary bg-clip-text text-transparent">
             Your Team's Code Knowledge,
             <br />
-            <span className="text-primary">Organized & Accessible</span>
+            <span className="bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">Organized & Accessible</span>
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
             Stop searching through Slack threads and scattered wikis. 
@@ -44,13 +45,13 @@ export default function Home() {
           <div className="flex gap-4 justify-center">
             <Link 
               href="/register"
-              className="px-8 py-3 bg-primary text-white rounded-lg text-lg font-semibold hover:bg-primary/90"
+              className="group px-8 py-4 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl text-lg font-semibold hover:from-primary/90 hover:to-blue-600/90 transition-all hover:shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-100"
             >
               Get Started Free
             </Link>
             <Link 
               href="/login"
-              className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg text-lg font-semibold hover:border-gray-400"
+              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl text-lg font-semibold hover:border-primary/50 hover:bg-primary/5 transition-all hover:shadow-lg hover:scale-105 active:scale-100"
             >
               View Demo
             </Link>
@@ -90,10 +91,13 @@ function FeatureCard({ icon, title, description }: {
   description: string 
 }) {
   return (
-    <div className="p-6 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+    <div className="group relative p-6 border border-border rounded-xl bg-gradient-to-br from-white to-white/95 shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover-lift overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="relative">
+        <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">{icon}</div>
+        <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
+        <p className="text-gray-600">{description}</p>
+      </div>
     </div>
   );
 }

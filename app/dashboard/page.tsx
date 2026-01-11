@@ -116,9 +116,9 @@ export default async function DashboardPage({
           
           <Link
             href="/dashboard/snippets/new"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-md self-start sm:self-auto"
+            className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl font-semibold hover:from-primary/90 hover:to-primary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-100 self-start sm:self-auto"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
             <span>New Snippet</span>
           </Link>
         </div>
@@ -126,38 +126,41 @@ export default async function DashboardPage({
         {/* Stats Cards */}
         {totalSnippets > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Code2 className="w-5 h-5 text-primary" />
+            <div className="group relative bg-gradient-to-br from-card to-card/95 border border-border rounded-xl p-5 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover-lift overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                  <Code2 className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{totalSnippets}</p>
-                  <p className="text-sm text-muted-foreground">Snippets</p>
+                  <p className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{totalSnippets}</p>
+                  <p className="text-sm text-muted-foreground font-medium">Snippets</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Tag className="w-5 h-5 text-primary" />
+            <div className="group relative bg-gradient-to-br from-card to-card/95 border border-border rounded-xl p-5 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover-lift overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                  <Tag className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{totalTags}</p>
-                  <p className="text-sm text-muted-foreground">Tags</p>
+                  <p className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{totalTags}</p>
+                  <p className="text-sm text-muted-foreground font-medium">Tags</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Folder className="w-5 h-5 text-primary" />
+            <div className="group relative bg-gradient-to-br from-card to-card/95 border border-border rounded-xl p-5 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover-lift overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                  <Folder className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{totalCollections}</p>
-                  <p className="text-sm text-muted-foreground">Collections</p>
+                  <p className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{totalCollections}</p>
+                  <p className="text-sm text-muted-foreground font-medium">Collections</p>
                 </div>
               </div>
             </div>
@@ -170,9 +173,10 @@ export default async function DashboardPage({
 
       {/* Content */}
       {snippets.length === 0 ? (
-        <div className="text-center py-16 bg-card border-2 border-dashed border-border rounded-xl">
-          <div className="max-w-md mx-auto space-y-4">
-            <div className="inline-flex p-4 bg-primary/10 rounded-full">
+        <div className="text-center py-16 bg-gradient-to-br from-card to-card/95 border-2 border-dashed border-border rounded-xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-50" />
+          <div className="relative max-w-md mx-auto space-y-4">
+            <div className="inline-flex p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full animate-float">
               <Sparkles className="w-12 h-12 text-primary" aria-hidden="true" />
             </div>
             <div className="space-y-2">
@@ -188,9 +192,9 @@ export default async function DashboardPage({
             {!searchQuery && (
               <Link
                 href="/dashboard/snippets/new"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-md mt-6"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl font-semibold hover:from-primary/90 hover:to-primary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-100 mt-6"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
                 <span>Create Your First Snippet</span>
               </Link>
             )}
@@ -202,9 +206,11 @@ export default async function DashboardPage({
             <Link
               key={snippet.id}
               href={`/dashboard/snippets/${snippet.id}`}
-              className="group block bg-card border border-border rounded-xl p-6 hover:border-primary/50 hover:shadow-lg transition-all duration-200 animate-fade-in"
+              className="group block bg-gradient-to-br from-card to-card/95 border border-border rounded-xl p-6 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover-lift animate-fade-in relative overflow-hidden"
               style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
             >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-1 space-y-3 min-w-0">
                   <div className="flex items-start gap-3">
@@ -262,6 +268,7 @@ export default async function DashboardPage({
                     {snippet.language}
                   </span>
                 </div>
+              </div>
               </div>
             </Link>
           ))}

@@ -64,10 +64,29 @@ export const theme = {
         from: { height: "var(--radix-accordion-content-height)" },
         to: { height: 0 },
       },
+      "shimmer": {
+        "0%": { backgroundPosition: "-1000px 0" },
+        "100%": { backgroundPosition: "1000px 0" },
+      },
+      "float": {
+        "0%, 100%": { transform: "translateY(0px)" },
+        "50%": { transform: "translateY(-10px)" },
+      },
+      "pulse-glow": {
+        "0%, 100%": { boxShadow: "0 0 0 0 rgba(59, 130, 246, 0.4)" },
+        "50%": { boxShadow: "0 0 20px 5px rgba(59, 130, 246, 0.2)" },
+      },
     },
     animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
+      "shimmer": "shimmer 2s linear infinite",
+      "float": "float 3s ease-in-out infinite",
+      "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+    },
+    boxShadow: {
+      "glow": "0 0 20px rgba(59, 130, 246, 0.3)",
+      "glow-lg": "0 0 30px rgba(59, 130, 246, 0.4)",
     },
   },
 };

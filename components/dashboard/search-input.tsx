@@ -114,7 +114,7 @@ export function SearchInput() {
         value={value}
         onChange={handleChange}
         placeholder="Search snippets by title, language, or tags..."
-        className="w-full pl-11 pr-10 py-3 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+        className="w-full pl-11 pr-10 py-3 bg-background border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-sm hover:shadow-md focus:shadow-lg"
         aria-label="Search snippets"
       />
       {value && (
