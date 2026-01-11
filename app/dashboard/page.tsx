@@ -1,40 +1,103 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { Search, Code2, Calendar, Tag, Folder, Plus, Sparkles, ArrowRight } from "lucide-react"
+import { Code2, Calendar, Tag, Folder, Plus, Sparkles, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { formatRelativeDate, getLanguageColor } from "@/lib/utils"
+import { SearchInput } from "@/components/dashboard/search-input"
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
   const session = await auth()
   
   if (!session?.user?.id) {
     return <div>Please sign in to view your snippets.</div>
   }
 
+  const params = await searchParams
+  const searchQuery = params.q?.trim() || ""
+
+  // Build search filter
+  const baseWhere = {
+    userId: session.user.id,
+  }
+
+  const searchWhere = searchQuery
+    ? {
+        ...baseWhere,
+        OR: [
+          { title: { contains: searchQuery, mode: "insensitive" as const } },
+          { description: { contains: searchQuery, mode: "insensitive" as const } },
+          { language: { contains: searchQuery, mode: "insensitive" as const } },
+          { code: { contains: searchQuery, mode: "insensitive" as const } },
+          {
+            tags: {
+              some: {
+                tag: {
+                  name: { contains: searchQuery, mode: "insensitive" as const },
+                },
+              },
+            },
+          },
+        ],
+      }
+    : baseWhere
+
+  // Fetch snippets with all needed data
   const snippets = await prisma.snippet.findMany({
-    where: {
-      userId: session.user.id,
-    },
+    where: searchWhere,
     include: {
       tags: {
         include: {
-          tag: true
-        }
+          tag: true,
+        },
       },
       _count: {
         select: {
-          collections: true
-        }
-      }
+          collections: true,
+        },
+      },
     },
     orderBy: {
-      updatedAt: 'desc'
-    }
+      updatedAt: "desc",
+    },
   })
 
-  const totalSnippets = snippets.length
-  const totalTags = new Set(snippets.flatMap(s => s.tags.map(t => t.tag.id))).size
-  const totalCollections = snippets.reduce((sum, s) => sum + s._count.collections, 0)
+  // Calculate stats (always show totals, not filtered)
+  const totalSnippets = searchQuery
+    ? await prisma.snippet.count({ where: baseWhere })
+    : snippets.length
+
+  // For tags and collections, calculate from all snippets if no search, otherwise use counts
+  let totalTags: number
+  let totalCollections: number
+
+  if (searchQuery) {
+    // When searching, we need separate queries for accurate totals
+    const allSnippetsForStats = await prisma.snippet.findMany({
+      where: baseWhere,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        _count: {
+          select: {
+            collections: true,
+          },
+        },
+      },
+    })
+    totalTags = new Set(allSnippetsForStats.flatMap((s) => s.tags.map((t) => t.tag.id))).size
+    totalCollections = allSnippetsForStats.reduce((sum, s) => sum + s._count.collections, 0)
+  } else {
+    // When not searching, use the already-fetched snippets
+    totalTags = new Set(snippets.flatMap((s) => s.tags.map((t) => t.tag.id))).size
+    totalCollections = snippets.reduce((sum, s) => sum + s._count.collections, 0)
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -102,17 +165,7 @@ export default async function DashboardPage() {
         )}
 
         {/* Search Bar */}
-        {totalSnippets > 0 && (
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Search snippets by title, language, or tags..."
-              className="w-full pl-11 pr-4 py-3 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-              aria-label="Search snippets"
-            />
-          </div>
-        )}
+        {totalSnippets > 0 && <SearchInput />}
       </div>
 
       {/* Content */}
@@ -123,19 +176,24 @@ export default async function DashboardPage() {
               <Sparkles className="w-12 h-12 text-primary" aria-hidden="true" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">No snippets yet</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                {searchQuery ? "No snippets found" : "No snippets yet"}
+              </h2>
               <p className="text-muted-foreground">
-                Start building your code library by creating your first snippet. 
-                Save your favorite code patterns, utilities, and solutions for quick access.
+                {searchQuery
+                  ? `No snippets match "${searchQuery}". Try a different search term.`
+                  : "Start building your code library by creating your first snippet. Save your favorite code patterns, utilities, and solutions for quick access."}
               </p>
             </div>
-            <Link
-              href="/dashboard/snippets/new"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-md mt-6"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Create Your First Snippet</span>
-            </Link>
+            {!searchQuery && (
+              <Link
+                href="/dashboard/snippets/new"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-md mt-6"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create Your First Snippet</span>
+              </Link>
+            )}
           </div>
         </div>
       ) : (

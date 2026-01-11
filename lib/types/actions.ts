@@ -18,3 +18,12 @@ export type DeleteResult =
   | { success: true }
   | { error: string }
 
+// Specific result types for common patterns
+export type CreateSnippetResult = 
+  | { success: true; snippetId: string }
+  | { error: string }
+
+export type CreateCollectionResult = 
+  | { success: true; collectionId: string }
+  | { error: string }
+

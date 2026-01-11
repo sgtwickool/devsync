@@ -2,7 +2,7 @@
 
 import { updateSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition } from "react"
 import { Edit, ChevronDown } from "lucide-react"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { Dialog } from "@/components/ui/dialog"
@@ -24,22 +24,6 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
-
-  useEffect(() => {
-    if (isOpen) {
-      // Prevent body scroll when dialog is open
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = 'unset'
-      }
-    }
-  }, [isOpen])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -71,7 +55,7 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
         <span>Edit</span>
       </button>
 
-      {isOpen && mounted && (
+      {isOpen && (
         <Dialog
           isOpen={isOpen}
           onClose={() => {

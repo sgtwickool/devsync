@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { handleServerActionError } from "@/lib/utils/errors"
+import type { CreateSnippetResult, UpdateResult, DeleteResult } from "@/lib/types/actions"
 
 const createSnippetSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -13,9 +14,12 @@ const createSnippetSchema = z.object({
   language: z.string().min(1, "Language is required"),
 })
 
-type CreateSnippetResult = 
-  | { success: true; snippetId: string }
-  | { error: string }
+const updateSnippetSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  code: z.string().min(1, "Code is required"),
+  language: z.string().min(1, "Language is required"),
+})
 
 export async function createSnippet(formData: FormData): Promise<CreateSnippetResult> {
   try {
@@ -66,11 +70,7 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
   }
 }
 
-type DeleteSnippetResult = 
-  | { success: true }
-  | { error: string }
-
-export async function deleteSnippet(snippetId: string): Promise<DeleteSnippetResult> {
+export async function deleteSnippet(snippetId: string): Promise<DeleteResult> {
   try {
     const session = await auth()
     
@@ -103,18 +103,7 @@ export async function deleteSnippet(snippetId: string): Promise<DeleteSnippetRes
   }
 }
 
-const updateSnippetSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  code: z.string().min(1, "Code is required"),
-  language: z.string().min(1, "Language is required"),
-})
-
-type UpdateSnippetResult = 
-  | { success: true }
-  | { error: string }
-
-export async function updateSnippet(snippetId: string, formData: FormData): Promise<UpdateSnippetResult> {
+export async function updateSnippet(snippetId: string, formData: FormData): Promise<UpdateResult> {
   try {
     const session = await auth()
     

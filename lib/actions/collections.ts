@@ -5,15 +5,12 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { handleServerActionError } from "@/lib/utils/errors"
+import type { CreateCollectionResult, UpdateResult, DeleteResult } from "@/lib/types/actions"
 
 const createCollectionSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
 })
-
-type CreateCollectionResult = 
-  | { success: true; collectionId: string }
-  | { error: string }
 
 export async function createCollection(formData: FormData): Promise<CreateCollectionResult> {
   try {
@@ -52,11 +49,7 @@ export async function createCollection(formData: FormData): Promise<CreateCollec
   }
 }
 
-type UpdateCollectionResult = 
-  | { success: true }
-  | { error: string }
-
-export async function updateCollection(collectionId: string, formData: FormData): Promise<UpdateCollectionResult> {
+export async function updateCollection(collectionId: string, formData: FormData): Promise<UpdateResult> {
   try {
     const session = await auth()
     
@@ -107,11 +100,7 @@ export async function updateCollection(collectionId: string, formData: FormData)
   }
 }
 
-type DeleteCollectionResult = 
-  | { success: true }
-  | { error: string }
-
-export async function deleteCollection(collectionId: string): Promise<DeleteCollectionResult> {
+export async function deleteCollection(collectionId: string): Promise<DeleteResult> {
   try {
     const session = await auth()
     
@@ -143,11 +132,7 @@ export async function deleteCollection(collectionId: string): Promise<DeleteColl
   }
 }
 
-type AddSnippetToCollectionResult = 
-  | { success: true }
-  | { error: string }
-
-export async function addSnippetToCollection(collectionId: string, snippetId: string): Promise<AddSnippetToCollectionResult> {
+export async function addSnippetToCollection(collectionId: string, snippetId: string): Promise<UpdateResult> {
   try {
     const session = await auth()
     
@@ -204,11 +189,7 @@ export async function addSnippetToCollection(collectionId: string, snippetId: st
   }
 }
 
-type RemoveSnippetFromCollectionResult = 
-  | { success: true }
-  | { error: string }
-
-export async function removeSnippetFromCollection(collectionId: string, snippetId: string): Promise<RemoveSnippetFromCollectionResult> {
+export async function removeSnippetFromCollection(collectionId: string, snippetId: string): Promise<UpdateResult> {
   try {
     const session = await auth()
     

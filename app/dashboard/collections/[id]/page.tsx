@@ -26,6 +26,7 @@ export default async function CollectionDetailPage({
   const collection = await prisma.collection.findUnique({
     where: { id },
     include: {
+      userId: true, // Include userId for authorization check
       snippets: {
         include: {
           snippet: {
@@ -55,12 +56,7 @@ export default async function CollectionDetailPage({
   }
 
   // Verify collection belongs to user
-  const collectionWithUser = await prisma.collection.findUnique({
-    where: { id },
-    select: { userId: true },
-  })
-
-  if (!collectionWithUser || collectionWithUser.userId !== session.user.id) {
+  if (collection.userId !== session.user.id) {
     redirect("/dashboard/collections")
   }
 

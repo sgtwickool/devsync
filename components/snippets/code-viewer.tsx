@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Prism from "prismjs"
 import "prismjs/themes/prism-tomorrow.css"
+import { PRISM_LANGUAGE_MAP } from "@/lib/constants/languages"
 
 // Language import map - load dynamically to avoid import-time errors
 const languageImports: Record<string, () => Promise<void>> = {
@@ -30,29 +31,6 @@ const languageImports: Record<string, () => Promise<void>> = {
   markdown: () => import("prismjs/components/prism-markdown").then(() => {}),
 }
 
-const languageMap: Record<string, string> = {
-  JavaScript: "javascript",
-  TypeScript: "typescript",
-  Python: "python",
-  Java: "java",
-  "C++": "cpp",
-  "C#": "csharp",
-  Go: "go",
-  Rust: "rust",
-  PHP: "php",
-  Ruby: "ruby",
-  Swift: "swift",
-  Kotlin: "kotlin",
-  HTML: "markup",
-  CSS: "css",
-  SQL: "sql",
-  Bash: "bash",
-  Shell: "bash",
-  JSON: "json",
-  YAML: "yaml",
-  Markdown: "markdown",
-}
-
 interface CodeViewerProps {
   code: string
   language: string
@@ -63,7 +41,7 @@ export function CodeViewer({ code, language }: CodeViewerProps) {
   const [isLanguageLoaded, setIsLanguageLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
-  const prismLanguage = languageMap[language] || "javascript"
+  const prismLanguage = PRISM_LANGUAGE_MAP[language] || "javascript"
 
   useEffect(() => {
     setIsMounted(true)

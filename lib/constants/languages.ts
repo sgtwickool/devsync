@@ -27,3 +27,30 @@ export const LANGUAGES = [
 
 export type Language = typeof LANGUAGES[number]
 
+/**
+ * Maps display language names to Prism.js language identifiers
+ */
+export const PRISM_LANGUAGE_MAP: Record<string, string> = {
+  JavaScript: "javascript",
+  TypeScript: "typescript",
+  Python: "python",
+  Java: "java",
+  "C++": "cpp",
+  "C#": "csharp",
+  Go: "go",
+  Rust: "rust",
+  PHP: "php",
+  Ruby: "ruby",
+  Swift: "swift",
+  Kotlin: "kotlin",
+  HTML: "markup",
+  CSS: "css",
+  SQL: "sql",
+  Bash: "bash",
+  Shell: "bash",
+  JSON: "json",
+  YAML: "yaml",
+  Markdown: "markdown",
+  Other: "javascript", // Default to JavaScript for "Other"
+}
+
