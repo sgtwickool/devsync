@@ -26,7 +26,6 @@ export default async function CollectionDetailPage({
   const collection = await prisma.collection.findUnique({
     where: { id },
     include: {
-      userId: true, // Include userId for authorization check
       snippets: {
         include: {
           snippet: {
