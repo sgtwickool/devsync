@@ -73,8 +73,8 @@ export const theme = {
         "50%": { transform: "translateY(-10px)" },
       },
       "pulse-glow": {
-        "0%, 100%": { boxShadow: "0 0 0 0 rgba(59, 130, 246, 0.4)" },
-        "50%": { boxShadow: "0 0 20px 5px rgba(59, 130, 246, 0.2)" },
+        "0%, 100%": { boxShadow: "0 0 0 0 rgba(139, 92, 246, 0.4)" },
+        "50%": { boxShadow: "0 0 20px 5px rgba(139, 92, 246, 0.2)" },
       },
     },
     animation: {
@@ -85,8 +85,8 @@ export const theme = {
       "pulse-glow": "pulse-glow 2s ease-in-out infinite",
     },
     boxShadow: {
-      "glow": "0 0 20px rgba(59, 130, 246, 0.3)",
-      "glow-lg": "0 0 30px rgba(59, 130, 246, 0.4)",
+      "glow": "0 0 20px rgba(139, 92, 246, 0.3)",
+      "glow-lg": "0 0 30px rgba(139, 92, 246, 0.4)",
     },
   },
 };
