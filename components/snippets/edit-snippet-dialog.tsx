@@ -2,12 +2,13 @@
 
 import { updateSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
-import { Edit, ChevronDown } from "lucide-react"
+import { useState, useTransition, useEffect } from "react"
+import { Edit, ChevronDown, Tag } from "lucide-react"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { Dialog } from "@/components/ui/dialog"
 import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { TagInput } from "@/components/snippets/tag-input"
 
 interface EditSnippetDialogProps {
   snippet: {
@@ -16,6 +17,7 @@ interface EditSnippetDialogProps {
     description: string | null
     code: string
     language: string
+    tags: Array<{ tag: { name: string } }>
   }
 }
 
@@ -24,12 +26,20 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [tags, setTags] = useState<string[]>([])
+
+  useEffect(() => {
+    if (isOpen) {
+      setTags(snippet.tags.map(({ tag }) => tag.name))
+    }
+  }, [isOpen, snippet.tags])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    formData.append("tags", JSON.stringify(tags))
     
     startTransition(async () => {
       const result = await updateSnippet(snippet.id, formData)
@@ -121,10 +131,23 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="edit-language" className="block text-sm font-semibold text-foreground mb-1">
-                    Language *
-                  </label>
+                  <div>
+                    <label htmlFor="edit-tags" className="block text-sm font-semibold text-foreground mb-1">
+                      <Tag className="w-4 h-4 inline mr-1.5 text-primary" aria-hidden="true" />
+                      Tags
+                      <span className="text-xs font-normal text-muted-foreground ml-2">(optional)</span>
+                    </label>
+                    <TagInput
+                      tags={tags}
+                      onChange={setTags}
+                      placeholder="e.g., algorithm, sorting, python"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-language" className="block text-sm font-semibold text-foreground mb-1">
+                      Language *
+                    </label>
                   <div className="relative">
                     <select
                       id="edit-language"

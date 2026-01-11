@@ -3,9 +3,10 @@
 import { createSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
-import { ArrowLeft, FileCode, Code2, Sparkles, AlertCircle, CheckCircle2, Loader2, ChevronDown } from "lucide-react"
+import { ArrowLeft, FileCode, Code2, Sparkles, AlertCircle, CheckCircle2, Loader2, ChevronDown, Tag } from "lucide-react"
 import Link from "next/link"
 import { LANGUAGES } from "@/lib/constants/languages"
+import { TagInput } from "@/components/snippets/tag-input"
 
 export default function NewSnippetPage() {
   const router = useRouter()
@@ -14,12 +15,14 @@ export default function NewSnippetPage() {
   const [titleLength, setTitleLength] = useState(0)
   const [descriptionLength, setDescriptionLength] = useState(0)
   const [codeLength, setCodeLength] = useState(0)
+  const [tags, setTags] = useState<string[]>([])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    formData.append("tags", JSON.stringify(tags))
     
     startTransition(async () => {
       const result = await createSnippet(formData)
@@ -177,6 +180,23 @@ export default function NewSnippetPage() {
             <p id="language-hint" className="text-xs text-muted-foreground">
               Used for syntax highlighting and organization
             </p>
+          </div>
+
+          {/* Tags Field */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="tags" 
+              className="flex items-center gap-2 text-sm font-semibold text-foreground"
+            >
+              <Tag className="w-4 h-4 text-primary" aria-hidden="true" />
+              Tags
+              <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+            </label>
+            <TagInput
+              tags={tags}
+              onChange={setTags}
+              placeholder="e.g., algorithm, sorting, python"
+            />
           </div>
 
           {/* Code Editor */}

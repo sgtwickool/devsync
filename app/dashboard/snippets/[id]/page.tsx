@@ -103,7 +103,16 @@ export default async function SnippetDetailPage({
         </div>
 
         <div className="flex items-center gap-2">
-          <EditSnippetDialog snippet={snippet} />
+          <EditSnippetDialog 
+            snippet={{
+              id: snippet.id,
+              title: snippet.title,
+              description: snippet.description,
+              code: snippet.code,
+              language: snippet.language,
+              tags: snippet.tags,
+            }} 
+          />
           <DeleteSnippetButton snippetId={snippet.id} />
         </div>
       </div>
@@ -127,8 +136,9 @@ export default async function SnippetDetailPage({
               {snippet.tags.map(({ tag }) => (
                 <span
                   key={tag.id}
-                  className="px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
                 >
+                  <span className="opacity-70">#</span>
                   {tag.name}
                 </span>
               ))}

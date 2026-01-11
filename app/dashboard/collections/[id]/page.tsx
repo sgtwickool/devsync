@@ -194,8 +194,9 @@ export default async function CollectionDetailPage({
                           {snippet.tags.map(({ tag }) => (
                             <span
                               key={tag.id}
-                              className="px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
                             >
+                              <span className="opacity-70">#</span>
                               {tag.name}
                             </span>
                           ))}

@@ -4,11 +4,12 @@ import { Code2, Calendar, Tag, Folder, Plus, Sparkles, ArrowRight } from "lucide
 import Link from "next/link"
 import { formatRelativeDate, getLanguageColor } from "@/lib/utils"
 import { SearchInput } from "@/components/dashboard/search-input"
+import { TagFilter } from "@/components/dashboard/tag-filter"
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; tag?: string }>
 }) {
   const session = await auth()
   
@@ -18,15 +19,30 @@ export default async function DashboardPage({
 
   const params = await searchParams
   const searchQuery = params.q?.trim() || ""
+  const tagFilter = params.tag?.trim() || ""
 
   // Build search filter
   const baseWhere = {
     userId: session.user.id,
   }
 
+  // Build tag filter
+  const tagWhere = tagFilter
+    ? {
+        tags: {
+          some: {
+            tag: {
+              name: tagFilter,
+            },
+          },
+        },
+      }
+    : {}
+
   const searchWhere = searchQuery
     ? {
         ...baseWhere,
+        ...tagWhere,
         OR: [
           { title: { contains: searchQuery, mode: "insensitive" as const } },
           { description: { contains: searchQuery, mode: "insensitive" as const } },
@@ -43,7 +59,36 @@ export default async function DashboardPage({
           },
         ],
       }
-    : baseWhere
+    : { ...baseWhere, ...tagWhere }
+
+  // Get all tags for the current user's snippets (for tag filter)
+  const allTags = await prisma.tag.findMany({
+    where: {
+      snippets: {
+        some: {
+          snippet: {
+            userId: session.user.id,
+          },
+        },
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          snippets: {
+            where: {
+              snippet: {
+                userId: session.user.id,
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      name: "asc",
+    },
+  })
 
   // Fetch snippets with all needed data
   const snippets = await prisma.snippet.findMany({
@@ -170,6 +215,11 @@ export default async function DashboardPage({
 
         {/* Search Bar */}
         {totalSnippets > 0 && <SearchInput />}
+
+        {/* Tag Filter */}
+        {totalSnippets > 0 && allTags.length > 0 && (
+          <TagFilter tags={allTags} activeTag={tagFilter} />
+        )}
       </div>
 
       {/* Content */}
@@ -243,8 +293,9 @@ export default async function DashboardPage({
                           {snippet.tags.slice(0, 3).map(({ tag }) => (
                             <span
                               key={tag.id}
-                              className="px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
                             >
+                              <span className="opacity-70">#</span>
                               {tag.name}
                             </span>
                           ))}
