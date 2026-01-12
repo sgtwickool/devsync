@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { FolderPlus, Loader2, AlertCircle, ChevronDown, X, Folder } from "lucide-react"
 import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface AddToCollectionButtonProps {
   snippetId: string
@@ -23,6 +24,10 @@ export function AddToCollectionButton({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [selectedCollectionId, setSelectedCollectionId] = useState("")
+  const [removeConfirm, setRemoveConfirm] = useState<{
+    collectionId: string
+    collectionName: string
+  } | null>(null)
 
   const availableCollections = collections.filter(c => !snippetCollectionIds.has(c.id))
 
@@ -51,22 +56,26 @@ export function AddToCollectionButton({
     })
   }
 
-  async function handleRemove(collectionId: string, collectionName: string) {
-    if (!confirm(`Remove this snippet from "${collectionName}"?`)) {
-      return
-    }
+  function handleRemoveClick(collectionId: string, collectionName: string) {
+    setRemoveConfirm({ collectionId, collectionName })
+  }
+
+  async function handleRemoveConfirm() {
+    if (!removeConfirm) return
 
     startTransition(async () => {
-      const result = await removeSnippetFromCollection(collectionId, snippetId)
+      const result = await removeSnippetFromCollection(removeConfirm.collectionId, snippetId)
       
       if ("error" in result) {
         toast.error("Failed to remove snippet", {
           description: result.error,
         })
+        setRemoveConfirm(null)
         return
       }
 
       toast.success("Snippet removed from collection")
+      setRemoveConfirm(null)
       router.refresh()
     })
   }
@@ -88,7 +97,7 @@ export function AddToCollectionButton({
               >
                 <span>{collection.name}</span>
                 <button
-                  onClick={() => handleRemove(collection.id, collection.name)}
+                  onClick={() => handleRemoveClick(collection.id, collection.name)}
                   disabled={isPending}
                   className="inline-flex items-center justify-center w-4 h-4 rounded hover:bg-accent-foreground/20 transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                   aria-label={`Remove from ${collection.name}`}
@@ -162,6 +171,23 @@ export function AddToCollectionButton({
           <p>This snippet is already in all your collections.</p>
         </div>
       )}
+
+      {/* Remove Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!removeConfirm}
+        onClose={() => setRemoveConfirm(null)}
+        onConfirm={handleRemoveConfirm}
+        title="Remove from Collection"
+        description={
+          removeConfirm
+            ? `Are you sure you want to remove this snippet from "${removeConfirm.collectionName}"?`
+            : ""
+        }
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="destructive"
+        isLoading={isPending}
+      />
     </div>
   )
 }

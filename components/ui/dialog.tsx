@@ -64,7 +64,7 @@ export function Dialog({
     >
       <div
         className={cn(
-          "bg-card border border-border rounded-xl shadow-lg w-full max-h-[90vh] flex flex-col animate-fade-in",
+          "bg-card border border-border rounded-xl shadow-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in",
           maxWidthClasses[maxWidth ?? "2xl"]
         )}
         onClick={(e) => e.stopPropagation()}
@@ -90,7 +90,7 @@ export function Dialog({
         </div>
         
         {footer && (
-          <div className="p-6 border-t border-border flex-shrink-0 bg-card">
+          <div className="p-6 border-t border-border flex-shrink-0 bg-card rounded-b-xl">
             {footer}
           </div>
         )}
