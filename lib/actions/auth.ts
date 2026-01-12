@@ -34,9 +34,12 @@ export async function registerUser(formData: FormData): Promise<RegisterResult> 
 
     const validated = registerSchema.parse(rawData)
 
+    // Normalize email to lowercase for consistency
+    const normalizedEmail = validated.email.toLowerCase().trim()
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: validated.email },
+      where: { email: normalizedEmail },
       select: { id: true },
     })
 
@@ -51,7 +54,7 @@ export async function registerUser(formData: FormData): Promise<RegisterResult> 
     await prisma.user.create({
       data: {
         name: validated.name,
-        email: validated.email,
+        email: normalizedEmail,
         password: hashedPassword,
       },
     })

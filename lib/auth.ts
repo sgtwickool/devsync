@@ -9,6 +9,7 @@ import type { User } from "@prisma/client"
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  secret: process.env.AUTH_SECRET,
   pages: {
     signIn: "/login",
   },
@@ -28,7 +29,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const email = String(credentials.email)
+        // Normalize email to lowercase for case-insensitive comparison
+        const email = String(credentials.email).toLowerCase().trim()
         const password = String(credentials.password)
 
         const user = await prisma.user.findUnique({

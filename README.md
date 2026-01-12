@@ -49,14 +49,15 @@ cp .env.example .env
 Edit `.env` and add your configuration:
 ```env
 DATABASE_URL="your-postgres-connection-string"
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="generate-a-random-secret-here"
+AUTH_SECRET="generate-a-random-secret-here"
 ```
 
 Generate a secret key:
 ```bash
 openssl rand -base64 32
 ```
+
+**Important:** Use the same `AUTH_SECRET` across all devices/environments that share the same database. This ensures JWT sessions work across devices.
 
 4. Set up your PostgreSQL database and add the connection string to `.env` as `DATABASE_URL`.
 
@@ -127,8 +128,7 @@ For production migrations, consider using `prisma migrate` instead of `db:push`.
 2. Import the project in Vercel
 3. Add environment variables:
    - `DATABASE_URL`
-   - `NEXTAUTH_URL` (your Vercel domain)
-   - `NEXTAUTH_SECRET`
+   - `AUTH_SECRET`
 4. Deploy
 
 Vercel will automatically deploy on every push to your main branch.
@@ -140,7 +140,7 @@ Set these in your hosting platform:
 ```env
 DATABASE_URL="your-production-database-url"
 NEXTAUTH_URL="https://your-domain.com"
-NEXTAUTH_SECRET="use-a-different-secret-in-production"
+AUTH_SECRET="use-a-different-secret-in-production"
 ```
 
 ## Current Features
