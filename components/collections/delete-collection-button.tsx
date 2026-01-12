@@ -4,6 +4,7 @@ import { deleteCollection } from "@/lib/actions/collections"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Trash2, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface DeleteCollectionButtonProps {
   collectionId: string
@@ -19,10 +20,13 @@ export function DeleteCollectionButton({ collectionId }: DeleteCollectionButtonP
       const result = await deleteCollection(collectionId)
       
       if ("error" in result) {
-        alert(result.error)
+        toast.error("Failed to delete collection", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Collection deleted successfully")
       router.push("/dashboard/collections")
       router.refresh()
     })

@@ -10,6 +10,7 @@ import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { TagInput } from "@/components/snippets/tag-input"
 import { CodeEditor } from "@/components/snippets/code-editor"
+import { toast } from "sonner"
 
 interface EditSnippetDialogProps {
   snippet: {
@@ -55,9 +56,13 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
 
       if ("error" in result) {
         setError(result.error)
+        toast.error("Failed to update snippet", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Snippet updated successfully")
       setIsOpen(false)
       router.refresh()
     })

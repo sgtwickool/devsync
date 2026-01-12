@@ -4,6 +4,7 @@ import { removeSnippetFromCollection } from "@/lib/actions/collections"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { X, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface RemoveSnippetFromCollectionProps {
   collectionId: string
@@ -23,10 +24,13 @@ export function RemoveSnippetFromCollection({ collectionId, snippetId }: RemoveS
       const result = await removeSnippetFromCollection(collectionId, snippetId)
       
       if ("error" in result) {
-        alert(result.error)
+        toast.error("Failed to remove snippet", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Snippet removed from collection")
       router.refresh()
     })
   }

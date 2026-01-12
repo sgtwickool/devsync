@@ -7,6 +7,7 @@ import { Plus, Sparkles } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { toast } from "sonner"
 
 export function CreateCollectionDialog() {
   const router = useRouter()
@@ -25,9 +26,13 @@ export function CreateCollectionDialog() {
 
       if ("error" in result) {
         setError(result.error)
+        toast.error("Failed to create collection", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Collection created successfully")
       setIsOpen(false)
       router.push(`/dashboard/collections/${result.collectionId}`)
       router.refresh()

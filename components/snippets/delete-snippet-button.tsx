@@ -4,6 +4,7 @@ import { deleteSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Trash2, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface DeleteSnippetButtonProps {
   snippetId: string
@@ -19,10 +20,13 @@ export function DeleteSnippetButton({ snippetId }: DeleteSnippetButtonProps) {
       const result = await deleteSnippet(snippetId)
       
       if ("error" in result) {
-        alert(result.error)
+        toast.error("Failed to delete snippet", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Snippet deleted successfully")
       router.push("/dashboard")
       router.refresh()
     })

@@ -8,6 +8,7 @@ import { Edit } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { toast } from "sonner"
 
 interface EditCollectionDialogProps {
   collection: {
@@ -39,9 +40,13 @@ export function EditCollectionDialog({ collection }: EditCollectionDialogProps) 
 
       if ("error" in result) {
         setError(result.error)
+        toast.error("Failed to update collection", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Collection updated successfully")
       setIsOpen(false)
       router.refresh()
     })

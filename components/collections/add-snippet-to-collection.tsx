@@ -4,6 +4,7 @@ import { addSnippetToCollection } from "@/lib/actions/collections"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Plus, Loader2, AlertCircle, ChevronDown } from "lucide-react"
+import { toast } from "sonner"
 
 interface AddSnippetToCollectionProps {
   collectionId: string
@@ -29,9 +30,13 @@ export function AddSnippetToCollection({ collectionId, availableSnippets }: AddS
 
       if ("error" in result) {
         setError(result.error)
+        toast.error("Failed to add snippet", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Snippet added to collection")
       setSelectedSnippetId("")
       router.refresh()
     })

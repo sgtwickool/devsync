@@ -8,6 +8,7 @@ import Link from "next/link"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { TagInput } from "@/components/snippets/tag-input"
 import { CodeEditor } from "@/components/snippets/code-editor"
+import { toast } from "sonner"
 
 export default function NewSnippetPage() {
   const router = useRouter()
@@ -31,9 +32,13 @@ export default function NewSnippetPage() {
 
       if ("error" in result) {
         setError(result.error)
+        toast.error("Failed to create snippet", {
+          description: result.error,
+        })
         return
       }
 
+      toast.success("Snippet created successfully")
       // Redirect to snippet detail page on success
       router.push(`/dashboard/snippets/${result.snippetId}`)
     })
