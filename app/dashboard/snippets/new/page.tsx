@@ -7,6 +7,7 @@ import { ArrowLeft, FileCode, Code2, Sparkles, AlertCircle, CheckCircle2, Loader
 import Link from "next/link"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { TagInput } from "@/components/snippets/tag-input"
+import { CodeEditor } from "@/components/snippets/code-editor"
 
 export default function NewSnippetPage() {
   const router = useRouter()
@@ -14,7 +15,8 @@ export default function NewSnippetPage() {
   const [isPending, startTransition] = useTransition()
   const [titleLength, setTitleLength] = useState(0)
   const [descriptionLength, setDescriptionLength] = useState(0)
-  const [codeLength, setCodeLength] = useState(0)
+  const [code, setCode] = useState("")
+  const [language, setLanguage] = useState("")
   const [tags, setTags] = useState<string[]>([])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -162,6 +164,8 @@ export default function NewSnippetPage() {
                 id="language"
                 name="language"
                 required
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-4 py-3 pr-10 bg-background border border-input rounded-lg text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent hover:border-input/80 appearance-none cursor-pointer"
                 aria-describedby="language-hint"
               >
@@ -209,29 +213,29 @@ export default function NewSnippetPage() {
               <span className="text-destructive" aria-label="required">*</span>
             </label>
             <div className="relative">
-              <textarea
+              <CodeEditor
                 id="code"
                 name="code"
+                value={code}
+                onChange={setCode}
+                language={language || "Other"}
                 required
                 rows={18}
-                onChange={(e) => setCodeLength(e.target.value.length)}
-                className="w-full px-4 py-4 bg-[#1e1e1e] border border-input rounded-lg font-mono text-sm text-[#d4d4d4] placeholder:text-muted-foreground/50 resize-none transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent hover:border-input/80 leading-relaxed"
                 placeholder="// Paste your code here...&#10;// Or start typing your snippet"
                 aria-describedby="code-hint code-count"
-                spellCheck="false"
               />
-              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+              <div className="absolute bottom-3 right-3 flex items-center gap-2 pointer-events-none">
                 <span 
                   id="code-count" 
-                  className="text-xs text-muted-foreground/70 tabular-nums bg-background/80 px-2 py-1 rounded"
+                  className="text-xs text-[#d4d4d4]/90 tabular-nums bg-[#252526] border border-[#3e3e42] px-2.5 py-1 rounded-md shadow-sm"
                   aria-live="polite"
                 >
-                  {codeLength} characters
+                  {code.length} characters
                 </span>
               </div>
             </div>
             <p id="code-hint" className="text-xs text-muted-foreground">
-              Paste or type your code snippet. Supports all programming languages.
+              Paste or type your code snippet.
             </p>
           </div>
         </div>

@@ -4,6 +4,7 @@
 export const LANGUAGES = [
   "JavaScript",
   "TypeScript",
+  "React",
   "Python",
   "Java",
   "C++",
@@ -28,11 +29,12 @@ export const LANGUAGES = [
 export type Language = (typeof LANGUAGES)[number]
 
 /**
- * Maps display language names to Prism.js language identifiers
+ * Maps display language names to CodeMirror language identifiers
  */
-export const PRISM_LANGUAGE_MAP = {
+export const LANGUAGE_MAP = {
   JavaScript: "javascript",
   TypeScript: "typescript",
+  React: "react",
   Python: "python",
   Java: "java",
   "C++": "cpp",
@@ -51,6 +53,6 @@ export const PRISM_LANGUAGE_MAP = {
   JSON: "json",
   YAML: "yaml",
   Markdown: "markdown",
-  Other: "javascript", // Default to JavaScript for "Other"
+  Other: "javascript",
 } as const satisfies Record<Language, string>
 

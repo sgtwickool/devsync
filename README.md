@@ -4,7 +4,7 @@ A code snippet manager for organising and storing useful code snippets, boilerpl
 
 ## Features
 
-- Save code snippets with syntax highlighting for 20+ programming languages
+- Save code snippets with syntax highlighting for 21+ programming languages
 - Organise snippets into collections for grouping related code
 - Tag snippets for easy categorisation and discovery
 - Full-text search across all snippets
@@ -18,7 +18,7 @@ A code snippet manager for organising and storing useful code snippets, boilerpl
 - **Prisma** for database management
 - **NextAuth.js v5** for authentication
 - **Tailwind CSS** for styling
-- **Prism.js** for syntax highlighting
+- **CodeMirror 6** for syntax highlighting
 - **PostgreSQL** for data storage
 
 ## Getting Started
@@ -139,7 +139,6 @@ Set these in your hosting platform:
 
 ```env
 DATABASE_URL="your-production-database-url"
-NEXTAUTH_URL="https://your-domain.com"
 AUTH_SECRET="use-a-different-secret-in-production"
 ```
 
@@ -147,7 +146,7 @@ AUTH_SECRET="use-a-different-secret-in-production"
 
 - User authentication (email/password)
 - Create, edit, and delete snippets
-- Syntax highlighting for 20+ languages
+- Syntax highlighting for 21+ languages
 - Collections for organising snippets
 - Tags for categorisation
 - Search functionality

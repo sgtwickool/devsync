@@ -3,7 +3,6 @@
 import { useMemo } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { oneDark } from "@codemirror/theme-one-dark"
-import { EditorView } from "@codemirror/view"
 import { javascript } from "@codemirror/lang-javascript"
 import { python } from "@codemirror/lang-python"
 import { java } from "@codemirror/lang-java"
@@ -40,12 +39,31 @@ const languageLoaders: Record<string, () => any> = {
   markdown: () => markdown(),
 }
 
-interface CodeViewerProps {
-  code: string
+interface CodeEditorProps {
+  id?: string
+  name?: string
+  value: string
+  onChange: (value: string) => void
   language: string
+  placeholder?: string
+  required?: boolean
+  rows?: number
+  className?: string
+  "aria-describedby"?: string
 }
 
-export function CodeViewer({ code, language }: CodeViewerProps) {
+export function CodeEditor({
+  id,
+  name,
+  value,
+  onChange,
+  language,
+  placeholder,
+  required,
+  rows = 15,
+  className,
+  "aria-describedby": ariaDescribedBy,
+}: CodeEditorProps) {
   const codeMirrorLanguage = (language in LANGUAGE_MAP
     ? LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP]
     : "javascript") satisfies string
@@ -56,23 +74,23 @@ export function CodeViewer({ code, language }: CodeViewerProps) {
   )
 
   return (
-    <div className="relative rounded-lg overflow-hidden border border-border">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-border/50">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {language}
-        </span>
-      </div>
+    <div className="relative">
       <CodeMirror
-        value={code}
-        editable={false}
+        value={value}
+        onChange={onChange}
         theme={oneDark}
-        extensions={[languageExtension, EditorView.lineWrapping]}
+        extensions={[languageExtension]}
+        placeholder={placeholder}
         basicSetup={{
           lineNumbers: true,
-          foldGutter: false,
+          foldGutter: true,
+          bracketMatching: true,
+          closeBrackets: true,
         }}
+        minHeight={`${rows * 1.6 * 16}px`}
+        maxHeight="600px"
         className={cn(
-          "rounded-b-lg overflow-hidden",
+          "rounded-lg border border-input overflow-hidden",
           "[&_.cm-editor]:outline-none",
           "[&_.cm-scroller]:font-mono",
           "[&_.cm-scroller]:text-sm",
@@ -82,9 +100,23 @@ export function CodeViewer({ code, language }: CodeViewerProps) {
           "[&_.cm-gutters]:border-r",
           "[&_.cm-gutters]:border-[#3e3e42]",
           "[&_.cm-lineNumbers]:text-[#858585]",
-          "[&_.cm-editor.cm-focused]:outline-none"
+          className
         )}
       />
+      {/* Hidden textarea for form submission */}
+      {name && (
+        <textarea
+          id={id}
+          name={name}
+          value={value}
+          readOnly
+          required={required}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          aria-describedby={ariaDescribedBy}
+        />
+      )}
     </div>
   )
 }
