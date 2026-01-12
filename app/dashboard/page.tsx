@@ -67,8 +67,8 @@ export default async function DashboardPage({
       snippets: {
         some: {
           snippet: {
-            userId: session.user.id,
-          },
+      userId: session.user.id,
+    },
         },
       },
     },
@@ -149,7 +149,7 @@ export default async function DashboardPage({
       {/* Header Section */}
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
+    <div>
             <h1 className="text-4xl font-bold text-foreground mb-2">My Snippets</h1>
             <p className="text-muted-foreground">
               {totalSnippets === 0 
@@ -157,8 +157,8 @@ export default async function DashboardPage({
                 : `You have ${totalSnippets} ${totalSnippets === 1 ? 'snippet' : 'snippets'} saved`
               }
             </p>
-          </div>
-          
+      </div>
+
           <Link
             href="/dashboard/snippets/new"
             className="group relative inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-100 self-start sm:self-auto overflow-hidden"
@@ -269,8 +269,8 @@ export default async function DashboardPage({
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                        {snippet.title}
-                      </h3>
+                  {snippet.title}
+                </h3>
                       {snippet.description && (
                         <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                           {snippet.description}
@@ -278,15 +278,15 @@ export default async function DashboardPage({
                       )}
                     </div>
                     <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-1" aria-hidden="true" />
-                  </div>
-                  
+              </div>
+              
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4" aria-hidden="true" />
                       <span>{formatRelativeDate(snippet.updatedAt)}</span>
                     </div>
                     
-                    {snippet.tags.length > 0 && (
+                {snippet.tags.length > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Tag className="w-4 h-4" aria-hidden="true" />
                         <div className="flex flex-wrap gap-1.5">
@@ -296,9 +296,9 @@ export default async function DashboardPage({
                               className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium"
                             >
                               <span className="opacity-70">#</span>
-                              {tag.name}
-                            </span>
-                          ))}
+                        {tag.name}
+                      </span>
+                    ))}
                           {snippet.tags.length > 3 && (
                             <span className="px-2 py-0.5 text-xs text-muted-foreground">
                               +{snippet.tags.length - 3} more

@@ -12,8 +12,10 @@ import { formatFullDate, getLanguageColor } from "@/lib/utils"
 
 export default async function SnippetDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string; collectionId?: string }>
 }) {
   const session = await auth()
   
@@ -73,18 +75,37 @@ export default async function SnippetDetailPage({
   })
 
   const snippetCollectionIds = new Set(snippet.collections.map(sc => sc.collection.id))
+  const currentCollections = snippet.collections.map(sc => sc.collection)
+
+  // Determine back navigation based on where user came from
+  const { from, collectionId } = await searchParams
+  let backHref = "/dashboard"
+  let backLabel = "Back to Dashboard"
+
+  if (from === "collection" && collectionId) {
+    // Verify the collection exists and belongs to user
+    const collection = await prisma.collection.findUnique({
+      where: { id: collectionId },
+      select: { id: true, name: true, userId: true },
+    })
+
+    if (collection && collection.userId === session.user.id) {
+      backHref = `/dashboard/collections/${collectionId}`
+      backLabel = `Back to ${collection.name}`
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          href="/dashboard"
+          href={backHref}
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Back to dashboard"
+          aria-label={backLabel}
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium">Back</span>
+          <span className="text-sm font-medium">{backLabel}</span>
         </Link>
       </div>
 
@@ -145,31 +166,16 @@ export default async function SnippetDetailPage({
             </div>
           </div>
         )}
-        {snippet.collections.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Folder className="w-4 h-4" aria-hidden="true" />
-            <div className="flex flex-wrap gap-1.5">
-              {snippet.collections.map(({ collection }) => (
-                <Link
-                  key={collection.id}
-                  href={`/dashboard/collections/${collection.id}`}
-                  className="px-2 py-0.5 bg-accent text-accent-foreground rounded-md text-xs font-medium hover:bg-accent/80 transition-colors"
-                >
-                  {collection.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Add to Collection */}
+      {/* Collections Management */}
       {allCollections.length > 0 && (
         <div className="bg-card border border-border rounded-lg p-4">
           <AddToCollectionButton
             snippetId={snippet.id}
             collections={allCollections}
             snippetCollectionIds={snippetCollectionIds}
+            currentCollections={currentCollections}
           />
         </div>
       )}

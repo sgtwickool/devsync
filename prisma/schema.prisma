@@ -117,6 +117,7 @@ model SnippetCollection {
   snippetId    String
   collectionId String
   addedAt      DateTime @default(now())
+  order        Int      @default(0)
   
   snippet    Snippet    @relation(fields: [snippetId], references: [id], onDelete: Cascade)
   collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
@@ -124,4 +125,5 @@ model SnippetCollection {
   @@id([snippetId, collectionId])
   @@index([snippetId])
   @@index([collectionId])
+  @@index([collectionId, order])
 }
