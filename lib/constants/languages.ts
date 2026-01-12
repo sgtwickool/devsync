@@ -25,12 +25,12 @@ export const LANGUAGES = [
   "Other",
 ] as const
 
-export type Language = typeof LANGUAGES[number]
+export type Language = (typeof LANGUAGES)[number]
 
 /**
  * Maps display language names to Prism.js language identifiers
  */
-export const PRISM_LANGUAGE_MAP: Record<string, string> = {
+export const PRISM_LANGUAGE_MAP = {
   JavaScript: "javascript",
   TypeScript: "typescript",
   Python: "python",
@@ -52,5 +52,5 @@ export const PRISM_LANGUAGE_MAP: Record<string, string> = {
   YAML: "yaml",
   Markdown: "markdown",
   Other: "javascript", // Default to JavaScript for "Other"
-}
+} as const satisfies Record<Language, string>
 

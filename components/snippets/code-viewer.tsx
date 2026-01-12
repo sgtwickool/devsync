@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Prism from "prismjs"
 import "prismjs/themes/prism-tomorrow.css"
 import { PRISM_LANGUAGE_MAP } from "@/lib/constants/languages"
+import { cn } from "@/lib/utils"
 
 // Language import map - load dynamically to avoid import-time errors
 const languageImports: Record<string, () => Promise<void>> = {
@@ -41,7 +42,9 @@ export function CodeViewer({ code, language }: CodeViewerProps) {
   const [isLanguageLoaded, setIsLanguageLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
-  const prismLanguage = PRISM_LANGUAGE_MAP[language] || "javascript"
+  const prismLanguage = (language in PRISM_LANGUAGE_MAP 
+    ? PRISM_LANGUAGE_MAP[language as keyof typeof PRISM_LANGUAGE_MAP]
+    : "javascript") satisfies string
 
   useEffect(() => {
     setIsMounted(true)
@@ -84,7 +87,7 @@ export function CodeViewer({ code, language }: CodeViewerProps) {
       <pre className="m-0 p-4 overflow-x-auto">
         <code
           ref={codeRef}
-          className={isMounted ? `language-${prismLanguage} text-sm leading-relaxed` : "text-sm leading-relaxed"}
+          className={cn("text-sm leading-relaxed", isMounted && `language-${prismLanguage}`)}
           suppressHydrationWarning
         >
           {code}

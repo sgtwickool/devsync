@@ -21,3 +21,18 @@ export function getRequiredFormString(formData: FormData, key: string): string {
   return value
 }
 
+/**
+ * Type-safe FormData extraction helper
+ */
+export function extractFormData<T extends Record<string, string | null | undefined>>(
+  formData: FormData,
+  keys: readonly (keyof T)[]
+): Partial<T> {
+  const result = {} as Partial<T>
+  for (const key of keys) {
+    const value = formData.get(String(key))
+    result[key] = typeof value === "string" ? (value as T[keyof T]) : undefined
+  }
+  return result
+}
+

@@ -13,14 +13,24 @@ const createSnippetSchema = z.object({
   description: z.string().optional(),
   code: z.string().min(1, "Code is required"),
   language: z.string().min(1, "Language is required"),
-})
+}) satisfies z.ZodType<{
+  title: string
+  description?: string
+  code: string
+  language: string
+}>
 
 const updateSnippetSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   code: z.string().min(1, "Code is required"),
   language: z.string().min(1, "Language is required"),
-})
+}) satisfies z.ZodType<{
+  title: string
+  description?: string
+  code: string
+  language: string
+}>
 
 export async function createSnippet(formData: FormData): Promise<CreateSnippetResult> {
   try {
@@ -52,7 +62,7 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
       description: typeof rawData.description === "string" ? rawData.description : undefined,
       code: rawData.code,
       language: rawData.language,
-    })
+    }) satisfies { title: string; description?: string; code: string; language: string }
 
     // Parse and create tags
     const tagNames = parseTagsFromFormData(rawData.tags)
@@ -67,7 +77,7 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
           create: await Promise.all(
             tagNames.map(async (tagName) => {
               const tag = await getOrCreateTag(prisma, tagName)
-              return { tagId: tag.id }
+              return { tagId: tag.id } as const
             })
           ),
         },
@@ -158,7 +168,7 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       description: typeof rawData.description === "string" ? rawData.description : undefined,
       code: rawData.code,
       language: rawData.language,
-    })
+    }) satisfies { title: string; description?: string; code: string; language: string }
 
     // Parse tags and get current tags
     const tagNames = parseTagsFromFormData(rawData.tags)

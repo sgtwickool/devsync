@@ -1,14 +1,8 @@
 "use client"
 
-import { useState, useRef, KeyboardEvent } from "react"
+import { useState, useRef, type KeyboardEvent } from "react"
 import { X, Hash } from "lucide-react"
-
-/**
- * Normalizes a tag name by removing # prefix, trimming, and lowercasing
- */
-function normalizeTag(tagName: string): string {
-  return tagName.replace(/^#+/, "").trim().toLowerCase()
-}
+import { normalizeTag } from "@/lib/utils/tags"
 
 interface TagInputProps {
   tags: string[]
@@ -21,7 +15,7 @@ export function TagInput({ tags, onChange, placeholder = "Add tags...", maxTags 
   const [inputValue, setInputValue] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
-  function addTag(tagName: string) {
+  function addTag(tagName: string): void {
     const cleaned = normalizeTag(tagName)
     if (!cleaned || tags.includes(cleaned) || tags.length >= maxTags) {
       setInputValue("")
@@ -37,11 +31,11 @@ export function TagInput({ tags, onChange, placeholder = "Add tags...", maxTags 
     }, 0)
   }
 
-  function removeTag(tagToRemove: string) {
+  function removeTag(tagToRemove: string): void {
     onChange(tags.filter((tag) => tag !== tagToRemove))
   }
 
-  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>): void {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault()
       if (inputValue.trim()) {
@@ -52,7 +46,7 @@ export function TagInput({ tags, onChange, placeholder = "Add tags...", maxTags 
     }
   }
 
-  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>): void {
     e.preventDefault()
     const pastedText = e.clipboardData.getData("text")
     const tagNames = pastedText

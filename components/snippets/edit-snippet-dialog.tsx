@@ -34,7 +34,7 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
     }
   }, [isOpen, snippet.tags])
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
     setError(null)
 

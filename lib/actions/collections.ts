@@ -10,7 +10,10 @@ import type { CreateCollectionResult, UpdateResult, DeleteResult } from "@/lib/t
 const createCollectionSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-})
+}) satisfies z.ZodType<{
+  name: string
+  description?: string
+}>
 
 export async function createCollection(formData: FormData): Promise<CreateCollectionResult> {
   try {

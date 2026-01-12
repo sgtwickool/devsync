@@ -2,7 +2,7 @@
  * Returns Tailwind CSS classes for language badges based on the programming language
  */
 export function getLanguageColor(language: string): string {
-  const colors: Record<string, string> = {
+  const colors = {
     JavaScript: "bg-yellow-100 text-yellow-800 border-yellow-200",
     TypeScript: "bg-blue-100 text-blue-800 border-blue-200",
     Python: "bg-green-100 text-green-800 border-green-200",
@@ -24,7 +24,8 @@ export function getLanguageColor(language: string): string {
     YAML: "bg-teal-100 text-teal-800 border-teal-200",
     Markdown: "bg-slate-100 text-slate-800 border-slate-200",
     Other: "bg-gray-100 text-gray-800 border-gray-200",
-  }
-  return colors[language] || colors.Other
+  } as const satisfies Record<string, string>
+  
+  return colors[language as keyof typeof colors] ?? colors.Other
 }
 

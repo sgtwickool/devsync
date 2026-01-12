@@ -24,7 +24,7 @@ export default async function DashboardPage({
   // Build search filter
   const baseWhere = {
     userId: session.user.id,
-  }
+  } as const
 
   // Build tag filter
   const tagWhere = tagFilter

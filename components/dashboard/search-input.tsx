@@ -25,7 +25,7 @@ export function SearchInput() {
     }
   }, [queryFromUrl])
 
-  function updateSearch(query: string) {
+  function updateSearch(query: string): void {
     // Cancel any pending debounced search
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
@@ -54,7 +54,7 @@ export function SearchInput() {
     })
   }
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const newValue = e.target.value
     setValue(newValue)
 
@@ -69,7 +69,7 @@ export function SearchInput() {
     }, 100)
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault()
     
     // Cancel any pending debounced search
@@ -82,7 +82,7 @@ export function SearchInput() {
     updateSearch(value)
   }
 
-  function handleClear() {
+  function handleClear(): void {
     // Cancel any pending search
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)

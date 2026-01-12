@@ -8,6 +8,13 @@ export function handleServerActionError(error: unknown): string {
     return error.errors[0]?.message ?? "Validation failed"
   }
   
+  if (error instanceof Error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Server action error:", error)
+    }
+    return error.message || "Something went wrong. Please try again."
+  }
+  
   if (process.env.NODE_ENV === "development") {
     console.error("Server action error:", error)
   }

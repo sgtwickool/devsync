@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState, ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface DialogProps {
   isOpen: boolean
@@ -22,7 +23,7 @@ const maxWidthClasses = {
   xl: "max-w-xl",
   "2xl": "max-w-2xl",
   "4xl": "max-w-4xl",
-}
+} as const satisfies Record<NonNullable<DialogProps["maxWidth"]>, string>
 
 export function Dialog({
   isOpen,
@@ -62,7 +63,10 @@ export function Dialog({
       }}
     >
       <div
-        className={`bg-card border border-border rounded-xl shadow-lg ${maxWidthClasses[maxWidth]} w-full max-h-[90vh] flex flex-col animate-fade-in`}
+        className={cn(
+          "bg-card border border-border rounded-xl shadow-lg w-full max-h-[90vh] flex flex-col animate-fade-in",
+          maxWidthClasses[maxWidth ?? "2xl"]
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
