@@ -10,6 +10,8 @@ import { RemoveSnippetFromCollection } from "@/components/collections/remove-sni
 import { ReorderSnippetButtons } from "@/components/collections/reorder-snippet-buttons"
 import { CodeViewer } from "@/components/snippets/code-viewer"
 import { formatFullDate, getLanguageColor } from "@/lib/utils"
+import { OrganizationBadge } from "@/components/organizations/organization-badge"
+import { canUserAccessSnippet } from "@/lib/utils/permissions"
 
 export default async function CollectionDetailPage({
   params,
@@ -27,6 +29,13 @@ export default async function CollectionDetailPage({
   const collection = await prisma.collection.findUnique({
     where: { id },
     include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
       snippets: {
         include: {
           snippet: {
@@ -34,6 +43,12 @@ export default async function CollectionDetailPage({
               tags: {
                 include: {
                   tag: true,
+                },
+              },
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
@@ -56,22 +71,48 @@ export default async function CollectionDetailPage({
     notFound()
   }
 
-  // Verify collection belongs to user
-  if (collection.userId !== session.user.id) {
+  // Check access: personal collection (userId match) or org collection (user is member)
+  const hasAccess =
+    collection.userId === session.user.id ||
+    (collection.organizationId &&
+      (await prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId: collection.organizationId,
+          },
+        },
+      })))
+
+  if (!hasAccess) {
     redirect("/dashboard/collections")
   }
 
-  // Get all user snippets for the "Add to collection" dropdown
+  // Get all accessible snippets matching collection context
+  // Personal collection -> personal snippets
+  // Org collection -> org snippets from same org
+  const snippetWhere = collection.organizationId
+    ? {
+        organizationId: collection.organizationId,
+        OR: [
+          { visibility: "TEAM" },
+          { userId: session.user.id, visibility: "PRIVATE" },
+        ],
+      }
+    : {
+        userId: session.user.id,
+        organizationId: null,
+      }
+
   const allSnippets = await prisma.snippet.findMany({
-    where: {
-      userId: session.user.id,
-    },
+    where: snippetWhere,
     select: {
       id: true,
       title: true,
+      organizationId: true,
     },
     orderBy: {
-      updatedAt: 'desc',
+      updatedAt: "desc",
     },
   })
 
@@ -102,7 +143,12 @@ export default async function CollectionDetailPage({
                 <Folder className="w-6 h-6 text-primary" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-foreground">{collection.name}</h1>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h1 className="text-3xl font-bold text-foreground">{collection.name}</h1>
+                  {collection.organization && (
+                    <OrganizationBadge organizationName={collection.organization.name} />
+                  )}
+                </div>
                 <div className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-semibold border border-primary/20">
                   <span>Workflow</span>
                   <span className="opacity-70">•</span>
@@ -213,6 +259,9 @@ export default async function CollectionDetailPage({
                       >
                         {snippet.title}
                       </Link>
+                            {snippet.organization && (
+                              <OrganizationBadge organizationName={snippet.organization.name} size="sm" />
+                            )}
                             <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold border ${getLanguageColor(snippet.language)}`}>
                               {snippet.language}
                             </span>

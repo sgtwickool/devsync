@@ -6,12 +6,13 @@ import { useState, useTransition } from "react"
 import { FolderPlus, Loader2, AlertCircle, ChevronDown, X, Folder } from "lucide-react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { OrganizationBadge } from "@/components/organizations/organization-badge"
 
 interface AddToCollectionButtonProps {
   snippetId: string
-  collections: Array<{ id: string; name: string }>
+  collections: Array<{ id: string; name: string; organizationId: string | null; organization?: { name: string } | null }>
   snippetCollectionIds: Set<string>
-  currentCollections: Array<{ id: string; name: string }>
+  currentCollections: Array<{ id: string; name: string; organizationId?: string | null; organization?: { name: string } | null }>
 }
 
 export function AddToCollectionButton({ 
@@ -96,6 +97,9 @@ export function AddToCollectionButton({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-foreground rounded-lg text-sm font-medium border border-border"
               >
                 <span>{collection.name}</span>
+                {collection.organization && (
+                  <OrganizationBadge organizationName={collection.organization.name} size="sm" />
+                )}
                 <button
                   onClick={() => handleRemoveClick(collection.id, collection.name)}
                   disabled={isPending}
@@ -141,6 +145,7 @@ export function AddToCollectionButton({
                 {availableCollections.map((collection) => (
                   <option key={collection.id} value={collection.id}>
                     {collection.name}
+                    {collection.organization ? ` (${collection.organization.name})` : ""}
                   </option>
                 ))}
               </select>

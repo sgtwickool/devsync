@@ -43,6 +43,13 @@ export default async function DashboardLayout({
                   Collections
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
                 </Link>
+                <Link 
+                  href="/dashboard/organizations" 
+                  className="text-foreground/70 hover:text-foreground font-medium transition-colors relative group"
+                >
+                  Organizations
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+                </Link>
               </div>
             </div>
 

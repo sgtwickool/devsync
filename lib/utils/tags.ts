@@ -35,17 +35,28 @@ export function parseTagsFromFormData(tags: FormDataEntryValue | null): string[]
 }
 
 /**
- * Creates or finds a tag by name
+ * Creates or finds a tag by name, scoped to organization if provided
  */
 export async function getOrCreateTag(
   prisma: PrismaClient,
-  tagName: string
+  tagName: string,
+  organizationId?: string | null
 ): Promise<{ id: string; name: string }> {
   const normalizedName = normalizeTag(tagName)
+  
+  // Tags are scoped by organizationId (null for personal tags)
   return prisma.tag.upsert({
-    where: { name: normalizedName },
+    where: {
+      name_organizationId: {
+        name: normalizedName,
+        organizationId: organizationId || null,
+      },
+    },
     update: {},
-    create: { name: normalizedName },
+    create: {
+      name: normalizedName,
+      organizationId: organizationId || null,
+    },
   })
 }
 

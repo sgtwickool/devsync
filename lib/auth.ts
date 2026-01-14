@@ -67,14 +67,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = String(token.id)
         session.user.email = String(token.email ?? "")
         session.user.name = token.name ? String(token.name) : null
+        session.user.image = token.image ? String(token.image) : null
       }
       return session
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // Initial sign in - populate token with user data
       if (user) {
         token.id = user.id
         token.email = user.email
         token.name = user.name
+        token.image = user.image
+      }
+      // For OAuth providers, account info is available on first sign in
+      if (account) {
+        token.accessToken = account.access_token
       }
       return token
     },

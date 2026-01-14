@@ -50,6 +50,8 @@ Edit `.env` and add your configuration:
 ```env
 DATABASE_URL="your-postgres-connection-string"
 AUTH_SECRET="generate-a-random-secret-here"
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
 ```
 
 Generate a secret key:
@@ -58,6 +60,19 @@ openssl rand -base64 32
 ```
 
 **Important:** Use the same `AUTH_SECRET` across all devices/environments that share the same database. This ensures JWT sessions work across devices.
+
+### GitHub OAuth Setup
+
+To enable GitHub OAuth authentication:
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Click "New OAuth App"
+3. Fill in the application details:
+   - **Application name**: DevSync (or your preferred name)
+   - **Homepage URL**: `http://localhost:3000` (for development) or your production URL
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (for development) or `https://your-domain.com/api/auth/callback/github` (for production)
+4. Click "Register application"
+5. Copy the **Client ID** and **Client Secret** to your `.env` file
 
 4. Set up your PostgreSQL database and add the connection string to `.env` as `DATABASE_URL`.
 
@@ -140,11 +155,15 @@ Set these in your hosting platform:
 ```env
 DATABASE_URL="your-production-database-url"
 AUTH_SECRET="use-a-different-secret-in-production"
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
 ```
+
+**Note:** Make sure to update your GitHub OAuth app's callback URL to match your production domain.
 
 ## Current Features
 
-- User authentication (email/password)
+- User authentication (email/password and GitHub OAuth)
 - Create, edit, and delete snippets
 - Syntax highlighting for 21+ languages
 - Collections for organising snippets

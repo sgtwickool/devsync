@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { handleServerActionError } from "@/lib/utils/errors"
 import { parseTagsFromFormData, getOrCreateTag } from "@/lib/utils/tags"
+import { canUserAccessSnippet, canUserModifySnippet } from "@/lib/utils/permissions"
 import type { CreateSnippetResult, UpdateResult, DeleteResult } from "@/lib/types/actions"
 
 const createSnippetSchema = z.object({
@@ -46,6 +47,8 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
       code: formData.get("code"),
       language: formData.get("language"),
       tags: formData.get("tags"),
+      organizationId: formData.get("organizationId"),
+      visibility: formData.get("visibility"),
     }
 
     // Validate all required fields are strings
@@ -64,7 +67,34 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
       language: rawData.language,
     }) satisfies { title: string; description?: string; code: string; language: string }
 
-    // Parse and create tags
+    // Handle organization and visibility
+    const organizationId =
+      typeof rawData.organizationId === "string" && rawData.organizationId !== ""
+        ? rawData.organizationId
+        : null
+    
+    const visibility =
+      typeof rawData.visibility === "string"
+        ? (rawData.visibility as "PRIVATE" | "TEAM" | "PUBLIC")
+        : "PRIVATE"
+
+    // If organization is provided, verify user is a member
+    if (organizationId) {
+      const isMember = await prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId,
+          },
+        },
+      })
+
+      if (!isMember) {
+        return { error: "You are not a member of this organization" }
+      }
+    }
+
+    // Parse and create tags (scoped to organization if provided)
     const tagNames = parseTagsFromFormData(rawData.tags)
     const snippet = await prisma.snippet.create({
       data: {
@@ -73,10 +103,12 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
         code: validated.code,
         language: validated.language,
         userId: session.user.id,
+        organizationId,
+        visibility,
         tags: {
           create: await Promise.all(
             tagNames.map(async (tagName) => {
-              const tag = await getOrCreateTag(prisma, tagName)
+              const tag = await getOrCreateTag(prisma, tagName, organizationId)
               return { tagId: tag.id } as const
             })
           ),
@@ -99,17 +131,17 @@ export async function deleteSnippet(snippetId: string): Promise<DeleteResult> {
       return { error: "Unauthorized" }
     }
 
-    // Verify snippet belongs to user
+    // Verify snippet exists and user can delete it
     const snippet = await prisma.snippet.findUnique({
       where: { id: snippetId },
-      select: { userId: true },
     })
 
     if (!snippet) {
       return { error: "Snippet not found" }
     }
 
-    if (snippet.userId !== session.user.id) {
+    const canModify = await canUserModifySnippet(session.user.id, snippet)
+    if (!canModify) {
       return { error: "Unauthorized" }
     }
 
@@ -132,17 +164,17 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       return { error: "Unauthorized" }
     }
 
-    // Verify snippet belongs to user
+    // Verify snippet exists and user can modify it
     const existingSnippet = await prisma.snippet.findUnique({
       where: { id: snippetId },
-      select: { userId: true },
     })
 
     if (!existingSnippet) {
       return { error: "Snippet not found" }
     }
 
-    if (existingSnippet.userId !== session.user.id) {
+    const canModify = await canUserModifySnippet(session.user.id, existingSnippet)
+    if (!canModify) {
       return { error: "Unauthorized" }
     }
 
@@ -152,6 +184,7 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       code: formData.get("code"),
       language: formData.get("language"),
       tags: formData.get("tags"),
+      visibility: formData.get("visibility"),
     }
 
     // Validate all required fields are strings
@@ -169,6 +202,11 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       code: rawData.code,
       language: rawData.language,
     }) satisfies { title: string; description?: string; code: string; language: string }
+
+    const visibility =
+      typeof rawData.visibility === "string"
+        ? (rawData.visibility as "PRIVATE" | "TEAM" | "PUBLIC")
+        : existingSnippet.visibility
 
     // Parse tags and get current tags
     const tagNames = parseTagsFromFormData(rawData.tags)
@@ -189,13 +227,14 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
         description: validated.description || null,
         code: validated.code,
         language: validated.language,
+        visibility,
       },
     })
 
-    // Add new tags
+    // Add new tags (scoped to organization if snippet belongs to one)
     await Promise.all(
       tagsToAdd.map(async (tagName) => {
-        const tag = await getOrCreateTag(prisma, tagName)
+        const tag = await getOrCreateTag(prisma, tagName, existingSnippet.organizationId)
         await prisma.snippetTag.create({
           data: { snippetId, tagId: tag.id },
         })
@@ -205,7 +244,13 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
     // Remove tags
     await Promise.all(
       tagsToRemove.map(async (tagName) => {
-        const tag = await prisma.tag.findUnique({ where: { name: tagName } })
+        // Find tag in the same organization context
+        const tag = await prisma.tag.findFirst({
+          where: {
+            name: tagName,
+            organizationId: existingSnippet.organizationId,
+          },
+        })
         if (tag) {
           await prisma.snippetTag.delete({
             where: { snippetId_tagId: { snippetId, tagId: tag.id } },

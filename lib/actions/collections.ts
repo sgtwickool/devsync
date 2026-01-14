@@ -26,6 +26,7 @@ export async function createCollection(formData: FormData): Promise<CreateCollec
     const rawData = {
       name: formData.get("name"),
       description: formData.get("description"),
+      organizationId: formData.get("organizationId"),
     }
 
     if (typeof rawData.name !== "string") {
@@ -37,11 +38,34 @@ export async function createCollection(formData: FormData): Promise<CreateCollec
       description: typeof rawData.description === "string" ? rawData.description : undefined,
     })
 
+    // Handle organization
+    const organizationId =
+      typeof rawData.organizationId === "string" && rawData.organizationId !== ""
+        ? rawData.organizationId
+        : null
+
+    // If organization is provided, verify user is a member
+    if (organizationId) {
+      const isMember = await prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId,
+          },
+        },
+      })
+
+      if (!isMember) {
+        return { error: "You are not a member of this organization" }
+      }
+    }
+
     const collection = await prisma.collection.create({
       data: {
         name: validated.name,
         description: validated.description || null,
         userId: session.user.id,
+        organizationId,
       },
     })
 
@@ -62,14 +86,27 @@ export async function updateCollection(collectionId: string, formData: FormData)
 
     const existingCollection = await prisma.collection.findUnique({
       where: { id: collectionId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
     if (!existingCollection) {
       return { error: "Collection not found" }
     }
 
-    if (existingCollection.userId !== session.user.id) {
+    // Check access: personal collection (userId match) or org collection (user is member)
+    const hasAccess =
+      existingCollection.userId === session.user.id ||
+      (existingCollection.organizationId && existingCollection.organization?.members.length > 0)
+
+    if (!hasAccess) {
       return { error: "Unauthorized" }
     }
 
@@ -113,14 +150,27 @@ export async function deleteCollection(collectionId: string): Promise<DeleteResu
 
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
     if (!collection) {
       return { error: "Collection not found" }
     }
 
-    if (collection.userId !== session.user.id) {
+    // Check access: personal collection (userId match) or org collection (user is member)
+    const hasAccess =
+      collection.userId === session.user.id ||
+      (collection.organizationId && collection.organization?.members.length > 0)
+
+    if (!hasAccess) {
       return { error: "Unauthorized" }
     }
 
@@ -143,24 +193,65 @@ export async function addSnippetToCollection(collectionId: string, snippetId: st
       return { error: "Unauthorized" }
     }
 
-    // Verify collection belongs to user
+    // Verify collection exists and user has access
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
-    if (!collection || collection.userId !== session.user.id) {
-      return { error: "Collection not found or unauthorized" }
+    if (!collection) {
+      return { error: "Collection not found" }
     }
 
-    // Verify snippet belongs to user
+    // Check access: personal collection (userId match) or org collection (user is member)
+    const hasAccess =
+      collection.userId === session.user.id ||
+      (collection.organizationId && collection.organization?.members.length > 0)
+
+    if (!hasAccess) {
+      return { error: "Unauthorized" }
+    }
+
+    // Verify snippet exists and user has access
     const snippet = await prisma.snippet.findUnique({
       where: { id: snippetId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
-    if (!snippet || snippet.userId !== session.user.id) {
+    if (!snippet) {
+      return { error: "Snippet not found" }
+    }
+
+    // Check access and context match
+    const hasSnippetAccess =
+      snippet.userId === session.user.id ||
+      (snippet.organizationId && snippet.organization?.members.length > 0)
+
+    if (!hasSnippetAccess) {
       return { error: "Snippet not found or unauthorized" }
+    }
+
+    // Verify snippet and collection are in the same context
+    if (snippet.organizationId !== collection.organizationId) {
+      return {
+        error: "Cannot add organization snippet to personal collection (or vice versa)",
+      }
     }
 
     // Check if already in collection
@@ -214,14 +305,31 @@ export async function reorderSnippetInCollection(
       return { error: "Unauthorized" }
     }
 
-    // Verify collection belongs to user
+    // Verify collection exists and user has access
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
-    if (!collection || collection.userId !== session.user.id) {
-      return { error: "Collection not found or unauthorized" }
+    if (!collection) {
+      return { error: "Collection not found" }
+    }
+
+    // Check access: personal collection (userId match) or org collection (user is member)
+    const hasAccess =
+      collection.userId === session.user.id ||
+      (collection.organizationId && collection.organization?.members.length > 0)
+
+    if (!hasAccess) {
+      return { error: "Unauthorized" }
     }
 
     // Get all snippets in collection ordered by order, then addedAt as fallback
@@ -286,14 +394,31 @@ export async function removeSnippetFromCollection(collectionId: string, snippetI
       return { error: "Unauthorized" }
     }
 
-    // Verify collection belongs to user
+    // Verify collection exists and user has access
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
-      select: { userId: true },
+      include: {
+        organization: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
     })
 
-    if (!collection || collection.userId !== session.user.id) {
-      return { error: "Collection not found or unauthorized" }
+    if (!collection) {
+      return { error: "Collection not found" }
+    }
+
+    // Check access: personal collection (userId match) or org collection (user is member)
+    const hasAccess =
+      collection.userId === session.user.id ||
+      (collection.organizationId && collection.organization?.members.length > 0)
+
+    if (!hasAccess) {
+      return { error: "Unauthorized" }
     }
 
     await prisma.snippetCollection.delete({

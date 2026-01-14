@@ -9,6 +9,8 @@ import { EditSnippetDialog } from "@/components/snippets/edit-snippet-dialog"
 import { CopyCodeButton } from "@/components/snippets/copy-code-button"
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button"
 import { formatFullDate, getLanguageColor } from "@/lib/utils"
+import { canUserAccessSnippet } from "@/lib/utils/permissions"
+import { OrganizationBadge } from "@/components/organizations/organization-badge"
 
 export default async function SnippetDetailPage({
   params,
@@ -33,12 +35,20 @@ export default async function SnippetDetailPage({
           tag: true,
         },
       },
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
       collections: {
         include: {
           collection: {
             select: {
               id: true,
               name: true,
+              organizationId: true,
             },
           },
         },
@@ -55,27 +65,67 @@ export default async function SnippetDetailPage({
     notFound()
   }
 
-  // Verify snippet belongs to user
-  if (snippet.userId !== session.user.id) {
+  // Check if user can access this snippet
+  const canAccess = await canUserAccessSnippet(session.user.id, snippet)
+  if (!canAccess) {
     redirect("/dashboard")
   }
 
-  // Get all user collections for the "Add to collection" button
-  const allCollections = await prisma.collection.findMany({
-    where: {
+  // Get all accessible collections (personal + org collections matching snippet context)
+  let collectionWhere: any
+  
+  if (snippet.organizationId === null) {
+    // Personal snippet - only show personal collections
+    collectionWhere = {
       userId: session.user.id,
-    },
-    select: {
-      id: true,
-      name: true,
+      organizationId: null,
+    }
+  } else {
+    // Org snippet - only show collections from same org
+    collectionWhere = {
+      organizationId: snippet.organizationId,
+      organization: {
+        members: {
+          some: { userId: session.user.id },
+        },
+      },
+    }
+  }
+
+  const allCollections = await prisma.collection.findMany({
+    where: collectionWhere,
+    include: {
+      organization: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
-      name: 'asc',
+      name: "asc",
     },
   })
 
   const snippetCollectionIds = new Set(snippet.collections.map(sc => sc.collection.id))
-  const currentCollections = snippet.collections.map(sc => sc.collection)
+  
+  // Get organization info for current collections
+  const currentCollections = await Promise.all(
+    snippet.collections.map(async (sc) => {
+      const org = sc.collection.organizationId
+        ? await prisma.organization.findUnique({
+            where: { id: sc.collection.organizationId },
+            select: { name: true },
+          })
+        : null
+      
+      return {
+        id: sc.collection.id,
+        name: sc.collection.name,
+        organizationId: sc.collection.organizationId,
+        organization: org,
+      }
+    })
+  )
 
   // Determine back navigation based on where user came from
   const { from, collectionId } = await searchParams
@@ -112,8 +162,11 @@ export default async function SnippetDetailPage({
       {/* Title and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-bold text-foreground">{snippet.title}</h1>
+            {snippet.organization && (
+              <OrganizationBadge organizationName={snippet.organization.name} />
+            )}
             <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold border ${getLanguageColor(snippet.language)}`}>
               {snippet.language}
             </span>
@@ -131,6 +184,8 @@ export default async function SnippetDetailPage({
               description: snippet.description,
               code: snippet.code,
               language: snippet.language,
+              visibility: snippet.visibility,
+              organizationId: snippet.organizationId,
               tags: snippet.tags,
             }} 
           />

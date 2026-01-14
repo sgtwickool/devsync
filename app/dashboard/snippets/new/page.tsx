@@ -2,12 +2,14 @@
 
 import { createSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { ArrowLeft, FileCode, Code2, Sparkles, AlertCircle, CheckCircle2, Loader2, ChevronDown, Tag } from "lucide-react"
 import Link from "next/link"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { TagInput } from "@/components/snippets/tag-input"
 import { CodeEditor } from "@/components/snippets/code-editor"
+import { OrganizationSelector } from "@/components/snippets/organization-selector"
+import { VisibilitySelector } from "@/components/snippets/visibility-selector"
 import { toast } from "sonner"
 
 export default function NewSnippetPage() {
@@ -19,6 +21,25 @@ export default function NewSnippetPage() {
   const [code, setCode] = useState("")
   const [language, setLanguage] = useState("")
   const [tags, setTags] = useState<string[]>([])
+  const [organizationId, setOrganizationId] = useState<string>("")
+  const [visibility, setVisibility] = useState<"PRIVATE" | "TEAM" | "PUBLIC">("PRIVATE")
+  const [organizations, setOrganizations] = useState<Array<{ organization: { id: string; name: string; slug: string } }>>([])
+
+  // Fetch user's organizations
+  useEffect(() => {
+    async function fetchOrganizations() {
+      try {
+        const response = await fetch("/api/organizations")
+        if (response.ok) {
+          const data = await response.json()
+          setOrganizations(data)
+        }
+      } catch (error) {
+        // Silently fail - organizations are optional
+      }
+    }
+    fetchOrganizations()
+  }, [])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -26,6 +47,10 @@ export default function NewSnippetPage() {
 
     const formData = new FormData(e.currentTarget)
     formData.append("tags", JSON.stringify(tags))
+    if (organizationId) {
+      formData.append("organizationId", organizationId)
+    }
+    formData.append("visibility", visibility)
     
     startTransition(async () => {
       const result = await createSnippet(formData)
@@ -190,6 +215,22 @@ export default function NewSnippetPage() {
               Used for syntax highlighting and organization
             </p>
           </div>
+
+          {/* Organization Selector */}
+          {organizations.length > 0 && (
+            <OrganizationSelector
+              organizations={organizations}
+              value={organizationId}
+              onChange={setOrganizationId}
+            />
+          )}
+
+          {/* Visibility Selector */}
+          <VisibilitySelector
+            value={visibility}
+            onChange={setVisibility}
+            hasOrganization={!!organizationId}
+          />
 
           {/* Tags Field */}
           <div className="space-y-2">

@@ -10,6 +10,7 @@ import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { TagInput } from "@/components/snippets/tag-input"
 import { CodeEditor } from "@/components/snippets/code-editor"
+import { VisibilitySelector } from "@/components/snippets/visibility-selector"
 import { toast } from "sonner"
 
 interface EditSnippetDialogProps {
@@ -19,6 +20,8 @@ interface EditSnippetDialogProps {
     description: string | null
     code: string
     language: string
+    visibility: "PRIVATE" | "TEAM" | "PUBLIC"
+    organizationId: string | null
     tags: Array<{ tag: { name: string } }>
   }
 }
@@ -33,6 +36,7 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
   const [descriptionLength, setDescriptionLength] = useState(snippet.description?.length ?? 0)
   const [code, setCode] = useState(snippet.code)
   const [language, setLanguage] = useState(snippet.language)
+  const [visibility, setVisibility] = useState<"PRIVATE" | "TEAM" | "PUBLIC">(snippet.visibility)
 
   useEffect(() => {
     if (isOpen) {
@@ -41,8 +45,9 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
       setDescriptionLength(snippet.description?.length ?? 0)
       setCode(snippet.code)
       setLanguage(snippet.language)
+      setVisibility(snippet.visibility)
     }
-  }, [isOpen, snippet.tags, snippet.title, snippet.description, snippet.code, snippet.language])
+  }, [isOpen, snippet.tags, snippet.title, snippet.description, snippet.code, snippet.language, snippet.visibility])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -50,6 +55,7 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
 
     const formData = new FormData(e.currentTarget)
     formData.append("tags", JSON.stringify(tags))
+    formData.append("visibility", visibility)
     
     startTransition(async () => {
       const result = await updateSnippet(snippet.id, formData)
@@ -169,6 +175,12 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
                     </span>
                   </div>
                 </div>
+
+                  <VisibilitySelector
+                    value={visibility}
+                    onChange={setVisibility}
+                    hasOrganization={!!snippet.organizationId}
+                  />
 
                   <div>
                     <label htmlFor="edit-tags" className="block text-sm font-semibold text-foreground mb-1">

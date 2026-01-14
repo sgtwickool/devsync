@@ -4,20 +4,91 @@ import { redirect } from "next/navigation"
 import { Folder, Plus, Calendar, FileCode, Sparkles, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { CreateCollectionDialog } from "@/components/collections/create-collection-dialog"
+import { OrganizationBadge } from "@/components/organizations/organization-badge"
+import { OrganizationFilter } from "@/components/organizations/organization-filter"
+import { getUserAccessibleOrganizations, getOrganizationFilterFromSearchParams } from "@/lib/utils/organization"
 import { formatRelativeDate } from "@/lib/utils"
 
-export default async function CollectionsPage() {
+export default async function CollectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ org?: string }>
+}) {
   const session = await auth()
   
   if (!session?.user?.id) {
     redirect("/login")
   }
 
-  const collections = await prisma.collection.findMany({
-    where: {
+  const params = await searchParams
+  const orgFilter = getOrganizationFilterFromSearchParams(params)
+  const userOrgs = await getUserAccessibleOrganizations(session.user.id)
+
+  // Build where clause for collections
+  let whereClause: any = {}
+
+  if (orgFilter === "personal") {
+    whereClause = {
       userId: session.user.id,
-    },
+      organizationId: null,
+    }
+  } else if (orgFilter && orgFilter !== "personal") {
+    // Filter by specific organization
+    const org = await prisma.organization.findUnique({
+      where: { slug: orgFilter },
+      select: { id: true },
+    })
+    
+    if (org) {
+      // Check if user is member
+      const isMember = await prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId: org.id,
+          },
+        },
+      })
+      
+      if (isMember) {
+        whereClause = {
+          organizationId: org.id,
+        }
+      } else {
+        whereClause = { id: "non-existent" } // Return empty
+      }
+    } else {
+      whereClause = { id: "non-existent" } // Return empty
+    }
+  } else {
+    // Show all: personal + org collections user has access to
+    const orgIds = userOrgs.map((om) => om.organization.id)
+    
+    whereClause = {
+      OR: [
+        { userId: session.user.id, organizationId: null }, // Personal
+        {
+          organizationId: { in: orgIds },
+          organization: {
+            members: {
+              some: { userId: session.user.id },
+            },
+          },
+        }, // Org collections
+      ],
+    }
+  }
+
+  const collections = await prisma.collection.findMany({
+    where: whereClause,
     include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
       _count: {
         select: {
           snippets: true,
@@ -25,8 +96,8 @@ export default async function CollectionsPage() {
       },
     },
     orderBy: {
-      updatedAt: 'desc'
-    }
+      updatedAt: "desc",
+    },
   })
 
   return (
@@ -45,6 +116,11 @@ export default async function CollectionsPage() {
         
         <CreateCollectionDialog />
       </div>
+
+      {/* Organization Filter */}
+      {userOrgs.length > 0 && (
+        <OrganizationFilter organizations={userOrgs} basePath="/dashboard/collections" />
+      )}
 
       {/* Collections Grid */}
       {collections.length === 0 ? (
@@ -77,9 +153,14 @@ export default async function CollectionsPage() {
                   <Folder className="w-6 h-6 text-primary" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1">
-                    {collection.name}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                      {collection.name}
+                    </h3>
+                    {collection.organization && (
+                      <OrganizationBadge organizationName={collection.organization.name} size="sm" />
+                    )}
+                  </div>
                   {collection.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {collection.description}

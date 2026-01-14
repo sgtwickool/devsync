@@ -2,8 +2,8 @@
 
 import { createCollection } from "@/lib/actions/collections"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
-import { Plus, Sparkles } from "lucide-react"
+import { useState, useTransition, useEffect } from "react"
+import { Plus, Sparkles, Building2 } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { ErrorAlert } from "@/components/ui/error-alert"
 import { LoadingButton } from "@/components/ui/loading-button"
@@ -14,12 +14,35 @@ export function CreateCollectionDialog() {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [organizationId, setOrganizationId] = useState<string>("")
+  const [organizations, setOrganizations] = useState<Array<{ organization: { id: string; name: string; slug: string } }>>([])
+
+  // Fetch user's organizations
+  useEffect(() => {
+    async function fetchOrganizations() {
+      try {
+        const response = await fetch("/api/organizations")
+        if (response.ok) {
+          const data = await response.json()
+          setOrganizations(data)
+        }
+      } catch (error) {
+        // Silently fail - organizations are optional
+      }
+    }
+    if (isOpen) {
+      fetchOrganizations()
+    }
+  }, [isOpen])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    if (organizationId) {
+      formData.append("organizationId", organizationId)
+    }
     
     startTransition(async () => {
       const result = await createCollection(formData)
@@ -88,6 +111,37 @@ export function CreateCollectionDialog() {
         <ErrorAlert error={error || undefined} />
 
         <form id="create-collection-form" onSubmit={handleSubmit} className="space-y-4">
+          {/* Organization Selector */}
+          {organizations.length > 0 && (
+            <div className="space-y-2">
+              <label
+                htmlFor="collection-organizationId"
+                className="flex items-center gap-2 text-sm font-semibold text-foreground"
+              >
+                <Building2 className="w-4 h-4 text-primary" aria-hidden="true" />
+                Organization
+                <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <select
+                id="collection-organizationId"
+                name="organizationId"
+                value={organizationId}
+                onChange={(e) => setOrganizationId(e.target.value)}
+                className="w-full px-4 py-3 bg-background border border-input rounded-lg text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent hover:border-input/80"
+              >
+                <option value="">Personal (My Collections)</option>
+                {organizations.map(({ organization }) => (
+                  <option key={organization.id} value={organization.id}>
+                    {organization.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Create this collection in an organization to share it with your team
+              </p>
+            </div>
+          )}
+
           <div>
             <label htmlFor="collection-name" className="block text-sm font-semibold text-foreground mb-1">
               Name *

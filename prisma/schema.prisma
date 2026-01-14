@@ -9,6 +9,72 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================================================
+// ORGANIZATION & TEAM MODELS
+// ============================================================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique  // for URLs like app.yoursite.com/acme-corp
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  members     OrganizationMember[]
+  invites     OrganizationInvite[]
+  snippets    Snippet[]
+  collections Collection[]
+  tags        Tag[]
+  
+  @@index([slug])
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  role           MemberRole @default(MEMBER)
+  joinedAt       DateTime @default(now())
+  
+  userId         String
+  organizationId String
+  
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+enum MemberRole {
+  OWNER   // created the org, can delete it
+  ADMIN   // can manage members
+  MEMBER  // can create snippets
+}
+
+model OrganizationInvite {
+  id             String   @id @default(cuid())
+  email          String
+  role           MemberRole @default(MEMBER)
+  token          String   @unique @default(cuid())
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  
+  organizationId String
+  invitedById    String
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  
+  @@unique([email, organizationId])
+  @@index([organizationId])
+  @@index([token])
+}
+
+// ============================================================================
+// USER & AUTH MODELS
+// ============================================================================
+
 model User {
   id            String       @id @default(cuid())
   email         String       @unique
@@ -19,10 +85,33 @@ model User {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   
+  // Subscription (for future billing)
+  subscriptionTier    SubscriptionTier @default(FREE)
+  subscriptionStatus SubscriptionStatus @default(ACTIVE)
+  subscriptionExpiresAt DateTime?
+  
+  // Personal snippets (for individual users not in orgs yet)
   snippets      Snippet[]
   collections   Collection[]
+  
+  // Auth
   accounts      Account[]
   sessions      Session[]
+  
+  // Organization membership
+  organizations OrganizationMember[]
+  invitesSent   OrganizationInvite[]
+}
+
+enum SubscriptionTier {
+  FREE  // 1 workspace, 5 members max
+  PRO   // Unlimited workspaces, unlimited members
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  TRIAL
 }
 
 model Account {
@@ -38,9 +127,9 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
+  
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   @@unique([provider, providerAccountId])
 }
 
@@ -49,6 +138,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -56,9 +146,13 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
+  
   @@unique([identifier, token])
 }
+
+// ============================================================================
+// SNIPPET MODELS
+// ============================================================================
 
 model Snippet {
   id          String   @id @default(cuid())
@@ -66,18 +160,34 @@ model Snippet {
   description String?
   code        String   @db.Text
   language    String
-  isPublic    Boolean  @default(false)
+  
+  // Visibility
+  visibility  SnippetVisibility @default(PRIVATE)
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Owner (personal snippets)
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Organization (team snippets) - nullable for backwards compatibility
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   
   tags        SnippetTag[]
   collections SnippetCollection[]
   
   @@index([userId])
+  @@index([organizationId])
   @@index([createdAt])
+  @@index([visibility])
+}
+
+enum SnippetVisibility {
+  PRIVATE      // Only creator can see
+  TEAM         // Everyone in organization can see
+  PUBLIC       // Anyone with link can see
 }
 
 model Collection {
@@ -87,18 +197,32 @@ model Collection {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Owner
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Organization (team collections)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   
   snippets    SnippetCollection[]
   
   @@index([userId])
+  @@index([organizationId])
 }
 
 model Tag {
   id       String       @id @default(cuid())
-  name     String       @unique
+  name     String
+  
+  // Scoped to organization (or global if null)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
   snippets SnippetTag[]
+  
+  @@unique([name, organizationId])
+  @@index([organizationId])
 }
 
 model SnippetTag {

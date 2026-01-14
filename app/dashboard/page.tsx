@@ -5,6 +5,10 @@ import Link from "next/link"
 import { formatRelativeDate, getLanguageColor } from "@/lib/utils"
 import { SearchInput } from "@/components/dashboard/search-input"
 import { TagFilter } from "@/components/dashboard/tag-filter"
+import { OrganizationFilter } from "@/components/organizations/organization-filter"
+import { OrganizationBadge } from "@/components/organizations/organization-badge"
+import { buildSnippetWhereClause, getOrganizationFilterFromSearchParams } from "@/lib/utils/organization"
+import { getUserAccessibleOrganizations } from "@/lib/utils/organization"
 
 export default async function DashboardPage({
   searchParams,
@@ -20,11 +24,13 @@ export default async function DashboardPage({
   const params = await searchParams
   const searchQuery = params.q?.trim() || ""
   const tagFilter = params.tag?.trim() || ""
+  const orgFilter = getOrganizationFilterFromSearchParams(params)
 
-  // Build search filter
-  const baseWhere = {
-    userId: session.user.id,
-  } as const
+  // Get user's organizations for filter
+  const userOrgs = await getUserAccessibleOrganizations(session.user.id)
+
+  // Build base where clause for unified view (personal + org snippets)
+  const baseWhere = await buildSnippetWhereClause(session.user.id, orgFilter)
 
   // Build tag filter
   const tagWhere = tagFilter
@@ -39,6 +45,7 @@ export default async function DashboardPage({
       }
     : {}
 
+  // Combine base where clause with search and tag filters
   const searchWhere = searchQuery
     ? {
         ...baseWhere,
@@ -61,14 +68,12 @@ export default async function DashboardPage({
       }
     : { ...baseWhere, ...tagWhere }
 
-  // Get all tags for the current user's snippets (for tag filter)
+  // Get all tags for accessible snippets (scoped to current filter context)
   const allTags = await prisma.tag.findMany({
     where: {
       snippets: {
         some: {
-          snippet: {
-      userId: session.user.id,
-    },
+          snippet: baseWhere,
         },
       },
     },
@@ -77,9 +82,7 @@ export default async function DashboardPage({
         select: {
           snippets: {
             where: {
-              snippet: {
-                userId: session.user.id,
-              },
+              snippet: baseWhere,
             },
           },
         },
@@ -90,13 +93,20 @@ export default async function DashboardPage({
     },
   })
 
-  // Fetch snippets with all needed data
+  // Fetch snippets with all needed data (including organization info)
   const snippets = await prisma.snippet.findMany({
     where: searchWhere,
     include: {
       tags: {
         include: {
           tag: true,
+        },
+      },
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
         },
       },
       _count: {
@@ -110,7 +120,7 @@ export default async function DashboardPage({
     },
   })
 
-  // Calculate stats (always show totals, not filtered)
+  // Calculate stats (always show totals for current filter context)
   const totalSnippets = searchQuery
     ? await prisma.snippet.count({ where: baseWhere })
     : snippets.length
@@ -213,6 +223,11 @@ export default async function DashboardPage({
           </div>
         )}
 
+        {/* Organization Filter */}
+        {userOrgs.length > 0 && (
+          <OrganizationFilter organizations={userOrgs} />
+        )}
+
         {/* Search Bar */}
         {totalSnippets > 0 && <SearchInput />}
 
@@ -281,6 +296,13 @@ export default async function DashboardPage({
               </div>
               
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    {snippet.organization && (
+                      <OrganizationBadge
+                        organizationName={snippet.organization.name}
+                        size="sm"
+                      />
+                    )}
+                    
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4" aria-hidden="true" />
                       <span>{formatRelativeDate(snippet.updatedAt)}</span>
