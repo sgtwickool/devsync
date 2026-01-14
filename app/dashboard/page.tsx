@@ -9,6 +9,7 @@ import { OrganizationFilter } from "@/components/organizations/organization-filt
 import { OrganizationBadge } from "@/components/organizations/organization-badge"
 import { buildSnippetWhereClause, getOrganizationFilterFromSearchParams } from "@/lib/utils/organization"
 import { getUserAccessibleOrganizations } from "@/lib/utils/organization"
+import { searchSnippetsComprehensive } from "@/lib/utils/search"
 
 export default async function DashboardPage({
   searchParams,
@@ -45,27 +46,9 @@ export default async function DashboardPage({
       }
     : {}
 
-  // Combine base where clause with search and tag filters
+  // Use full-text search if search query exists, otherwise use base where clause
   const searchWhere = searchQuery
-    ? {
-        ...baseWhere,
-        ...tagWhere,
-        OR: [
-          { title: { contains: searchQuery, mode: "insensitive" as const } },
-          { description: { contains: searchQuery, mode: "insensitive" as const } },
-          { language: { contains: searchQuery, mode: "insensitive" as const } },
-          { code: { contains: searchQuery, mode: "insensitive" as const } },
-          {
-            tags: {
-              some: {
-                tag: {
-                  name: { contains: searchQuery, mode: "insensitive" as const },
-                },
-              },
-            },
-          },
-        ],
-      }
+    ? await searchSnippetsComprehensive(searchQuery, { ...baseWhere, ...tagWhere })
     : { ...baseWhere, ...tagWhere }
 
   // Get all tags for accessible snippets (scoped to current filter context)

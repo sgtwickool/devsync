@@ -1,38 +1,28 @@
 # DevSync
 
-A code snippet manager for organising and storing useful code snippets, boilerplate, and quick reference material. Built with Next.js 16 and PostgreSQL.
+A modern, open-source code snippet manager with team collaboration built in. Organize your code snippets, share them with your team, and find them instantly with powerful full-text search.
 
 ## Features
 
-- Save code snippets with syntax highlighting for 21+ programming languages
-- Organise snippets into collections for grouping related code
-- Tag snippets for easy categorisation and discovery
-- Full-text search across all snippets
-- User authentication with private snippet storage
-- Responsive design that works on desktop and mobile
+- **Full-Text Search**: PostgreSQL-powered full-text search across titles, descriptions, code, and tags
+- **Syntax Highlighting**: Beautiful code rendering with support for 100+ languages
+- **Team Collaboration**: Share snippets with your team through organizations
+- **Collections & Tags**: Organize snippets into logical groups
+- **Secure & Private**: Your code stays yours. Self-host or use our cloud
+- **Modern Stack**: Next.js 16, TypeScript, Prisma, PostgreSQL
 
-## Tech Stack
-
-- **Next.js 16** with App Router and Server Actions
-- **TypeScript** for type safety
-- **Prisma** for database management
-- **NextAuth.js v5** for authentication
-- **Tailwind CSS** for styling
-- **CodeMirror 6** for syntax highlighting
-- **PostgreSQL** for data storage
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- PostgreSQL database
+- Node.js 18+ 
+- PostgreSQL database (or use Supabase/Neon for free hosting)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/sgtwickool/devsync.git
+git clone <your-repo-url>
 cd devsync
 ```
 
@@ -46,95 +36,89 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` and add your configuration:
+Edit `.env` and add:
 ```env
-DATABASE_URL="your-postgres-connection-string"
-AUTH_SECRET="generate-a-random-secret-here"
-GITHUB_CLIENT_ID="your-github-client-id"
-GITHUB_CLIENT_SECRET="your-github-client-secret"
-
-# Email Configuration (for organization invitations)
-RESEND_API_KEY="your-resend-api-key"
-EMAIL_FROM="noreply@yourdomain.com"
-EMAIL_FROM_NAME="DevSync"
+DATABASE_URL="postgresql://user:password@localhost:5432/devsync"
+AUTH_SECRET="generate-with: openssl rand -base64 32"
+GITHUB_CLIENT_ID="your-github-client-id"  # Optional
+GITHUB_CLIENT_SECRET="your-github-client-secret"  # Optional
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-EMAIL_ENABLED="true"  # Set to "true" to enable emails in development
+RESEND_API_KEY="your-resend-api-key"  # For email invitations
+EMAIL_ENABLED="true"  # Set to false to disable email in development
 ```
 
-Generate a secret key:
+4. Set up the database:
 ```bash
-openssl rand -base64 32
-```
-
-**Important:** Use the same `AUTH_SECRET` across all devices/environments that share the same database. This ensures JWT sessions work across devices.
-
-### GitHub OAuth Setup
-
-To enable GitHub OAuth authentication:
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Click "New OAuth App"
-3. Fill in the application details:
-   - **Application name**: DevSync (or your preferred name)
-   - **Homepage URL**: `http://localhost:3000` (for development) or your production URL
-   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (for development) or `https://your-domain.com/api/auth/callback/github` (for production)
-4. Click "Register application"
-5. Copy the **Client ID** and **Client Secret** to your `.env` file
-
-### Email Setup (Optional but Recommended)
-
-To enable email invitations for organizations:
-
-1. Sign up for a free account at [Resend](https://resend.com) (100 emails/day free tier)
-2. Create an API key in the Resend dashboard
-3. Add your API key to `.env` as `RESEND_API_KEY`
-4. Configure your sender email:
-   - `EMAIL_FROM`: The email address to send from (e.g., `noreply@yourdomain.com`)
-   - `EMAIL_FROM_NAME`: Display name for emails (e.g., `DevSync`)
-   - `NEXT_PUBLIC_APP_URL`: Your app's URL (e.g., `http://localhost:3000` for dev, or your production URL)
-5. Set `EMAIL_ENABLED="true"` to enable emails in development (emails are always enabled in production)
-
-**Note:** If email is not configured, invitations will still be created and accessible via direct link, but no email will be sent.
-
-6. Set up your PostgreSQL database and add the connection string to `.env` as `DATABASE_URL`.
-
-5. Initialise the database:
-```bash
+# Push the schema to your database
 npm run db:push
+
+# Run the full-text search migration (required for search functionality)
+# Connect to your database and run:
+psql $DATABASE_URL -f prisma/migrations/add_fulltext_search.sql
+
+# Or if using a different connection method, run the SQL manually:
+# See prisma/migrations/add_fulltext_search.sql
 ```
 
-6. Start the development server:
+5. Start the development server:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. Create an account to get started.
+6. Visit http://localhost:3000
 
-## Project Structure
+## Database Setup
 
-```
-devsync/
-├── app/                    # Next.js app directory
-│   ├── (auth)/            # Authentication pages
-│   ├── dashboard/         # Main application (protected routes)
-│   │   ├── snippets/      # Snippet management pages
-│   │   └── collections/   # Collection management pages
-│   └── api/               # API routes (NextAuth)
-├── components/
-│   ├── auth/              # Authentication forms
-│   ├── snippets/          # Snippet-related components
-│   ├── collections/       # Collection components
-│   └── ui/                # Reusable UI components
-├── lib/
-│   ├── actions/           # Server actions (CRUD operations)
-│   ├── utils/             # Utility functions
-│   ├── constants/         # Shared constants
-│   └── types/             # TypeScript type definitions
-└── prisma/
-    └── schema.prisma      # Database schema
+### Option A: Local PostgreSQL
+
+```bash
+# Install PostgreSQL
+# macOS: brew install postgresql
+# Windows: Download from postgresql.org
+
+# Create database
+createdb devsync
+
+# Connection string:
+DATABASE_URL="postgresql://username@localhost:5432/devsync"
 ```
 
-The codebase follows Next.js 16 conventions: server components by default, client components for interactivity. Server actions handle database operations.
+### Option B: Supabase (Recommended - Free & Easy)
+
+1. Go to https://supabase.com
+2. Create new project
+3. Go to Settings → Database
+4. Copy "Connection string" (transaction mode)
+5. Replace password placeholder
+6. Paste into `.env`
+
+### Option C: Neon (Serverless PostgreSQL)
+
+1. Go to https://neon.tech
+2. Create new project
+3. Copy connection string
+4. Paste into `.env`
+
+## Full-Text Search Setup
+
+DevSync uses PostgreSQL's full-text search for powerful snippet searching. After setting up your database, you need to run the migration:
+
+```bash
+# Using psql
+psql $DATABASE_URL -f prisma/migrations/add_fulltext_search.sql
+
+# Or manually run the SQL in prisma/migrations/add_fulltext_search.sql
+```
+
+This migration:
+- Adds a `search_vector` generated column that combines title, description, code, and language
+- Creates a GIN index for fast full-text search
+- Enables prefix matching and relevance ranking
+
+**Note**: If you get an error about `pg_trgm` extension, run:
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```
 
 ## Development
 
@@ -143,13 +127,13 @@ The codebase follows Next.js 16 conventions: server components by default, clien
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
+npm run start        # Start production server
 npm run db:push      # Push schema changes to database
+npm run db:generate  # Generate Prisma client
 npm run db:studio    # Open Prisma Studio (database GUI)
 ```
 
 ### Making Schema Changes
-
-The project uses Prisma for database management. To modify the schema:
 
 1. Edit `prisma/schema.prisma`
 2. Run `npm run db:push` to apply changes
@@ -157,15 +141,27 @@ The project uses Prisma for database management. To modify the schema:
 
 For production migrations, consider using `prisma migrate` instead of `db:push`.
 
+## Email Configuration
+
+DevSync uses Resend for sending organization invitation emails. To enable email:
+
+1. Sign up at https://resend.com
+2. Get your API key
+3. Add to `.env`:
+```env
+RESEND_API_KEY="re_..."
+EMAIL_ENABLED="true"
+```
+
+In development, emails are only sent if `EMAIL_ENABLED=true`. In production, emails are always sent.
+
 ## Deployment
 
 ### Vercel
 
 1. Push your code to GitHub
 2. Import the project in Vercel
-3. Add environment variables:
-   - `DATABASE_URL`
-   - `AUTH_SECRET`
+3. Add environment variables (see `.env.example`)
 4. Deploy
 
 Vercel will automatically deploy on every push to your main branch.
@@ -179,45 +175,67 @@ DATABASE_URL="your-production-database-url"
 AUTH_SECRET="use-a-different-secret-in-production"
 GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
+NEXT_PUBLIC_APP_URL="https://your-domain.com"
+RESEND_API_KEY="your-resend-api-key"
+EMAIL_ENABLED="true"
 ```
 
-**Note:** Make sure to update your GitHub OAuth app's callback URL to match your production domain.
+**Note**: Make sure to:
+- Update your GitHub OAuth app's callback URL to match your production domain
+- Run the full-text search migration on your production database
+- Set up proper database connection pooling for production
 
-## Current Features
+## Project Structure
 
-- User authentication (email/password and GitHub OAuth)
-- Create, edit, and delete snippets
-- Syntax highlighting for 21+ languages
-- Collections for organising snippets
-- Tags for categorisation
-- Search functionality
-- Responsive design
+```
+├── app/
+│   ├── (auth)/          # Authentication pages
+│   ├── api/             # API routes
+│   ├── dashboard/       # Main application pages
+│   └── invite/          # Organization invite pages
+├── components/
+│   ├── auth/            # Authentication forms
+│   ├── snippets/        # Snippet-related components
+│   ├── collections/     # Collection components
+│   ├── organizations/   # Organization components
+│   └── ui/              # Reusable UI components
+├── lib/
+│   ├── actions/         # Server actions (CRUD operations)
+│   ├── utils/           # Utility functions
+│   ├── constants/       # Shared constants
+│   └── types/           # TypeScript type definitions
+└── prisma/
+    ├── schema.prisma    # Database schema
+    └── migrations/      # SQL migrations
+```
 
-## Roadmap
+## Features
+
+### Current Features
+
+- ✅ User authentication (email/password and GitHub OAuth)
+- ✅ Full-text search across snippets (title, description, code, language, tags)
+- ✅ Create, edit, and delete snippets
+- ✅ Syntax highlighting for 100+ languages
+- ✅ Collections and tags
+- ✅ Team collaboration through organizations
+- ✅ Organization member management
+- ✅ Email invitations for organizations
+- ✅ Multi-tenancy support (personal + organization snippets)
+- ✅ Subscription tiers (FREE/PRO) with feature gating
+
+### Coming Soon
 
 - Public snippet sharing
-- Team workspaces
-- Dark mode
-- Export snippets (markdown, PDF)
-- VS Code extension
 - API access
-
-## Contributing
-
-Issues and pull requests are welcome. Contributions that improve the codebase or add useful features are appreciated.
+- Advanced analytics
+- Custom domains (Pro tier)
+- SSO/SAML (Enterprise)
 
 ## License
 
-MIT License - feel free to use this project for learning or building your own tools.
+MIT License - see LICENSE file for details
 
-## Learning Resources
+## Contributing
 
-This project demonstrates:
-- Server and client components in Next.js
-- Server actions for mutations
-- Authentication with NextAuth
-- Database relationships with Prisma
-- Form handling and validation
-- Responsive UI with Tailwind CSS
-
-See `GUIDE.md` for more detailed architecture notes.
+Contributions are welcome! Please feel free to submit a Pull Request.
