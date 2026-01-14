@@ -49,16 +49,14 @@ EMAIL_ENABLED="true"  # Set to false to disable email in development
 
 4. Set up the database:
 ```bash
-# Push the schema to your database
-npm run db:push
+# Deploy migrations (includes schema + full-text search)
+npm run db:migrate:deploy
 
-# Run the full-text search migration (required for search functionality)
-# Connect to your database and run:
-psql $DATABASE_URL -f prisma/migrations/add_fulltext_search.sql
-
-# Or if using a different connection method, run the SQL manually:
-# See prisma/migrations/add_fulltext_search.sql
+# Or for development, use:
+npm run db:migrate
 ```
+
+**Note**: The migrations include both the schema and full-text search setup. If you're starting fresh, migrations will run automatically. If you already have a database, see `PRISMA_MIGRATIONS.md` for setting up a baseline.
 
 5. Start the development server:
 ```bash
@@ -101,45 +99,42 @@ DATABASE_URL="postgresql://username@localhost:5432/devsync"
 
 ## Full-Text Search Setup
 
-DevSync uses PostgreSQL's full-text search for powerful snippet searching. After setting up your database, you need to run the migration:
+DevSync uses PostgreSQL's full-text search for powerful snippet searching. The full-text search setup is included in the Prisma migrations and will be applied automatically when you run migrations.
 
-```bash
-# Using psql
-psql $DATABASE_URL -f prisma/migrations/add_fulltext_search.sql
-
-# Or manually run the SQL in prisma/migrations/add_fulltext_search.sql
-```
-
-This migration:
+The migration:
 - Adds a `search_vector` generated column that combines title, description, code, and language
 - Creates a GIN index for fast full-text search
 - Enables prefix matching and relevance ranking
+- Sets up tag name indexes for fast tag searching
 
-**Note**: If you get an error about `pg_trgm` extension, run:
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-```
+**Note**: If you get an error about `pg_trgm` extension, the migration handles this automatically with `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
 
 ## Development
 
 ### Available Commands
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run db:push      # Push schema changes to database
-npm run db:generate  # Generate Prisma client
-npm run db:studio    # Open Prisma Studio (database GUI)
+npm run dev              # Start development server
+npm run build            # Build for production (includes Prisma generate)
+npm run start            # Start production server
+npm run vercel-build     # Build for Vercel (includes migrations)
+npm run db:push          # Quick sync schema (development only)
+npm run db:migrate       # Create and apply migration (development)
+npm run db:migrate:deploy # Apply pending migrations (production)
+npm run db:migrate:status # Check migration status
+npm run db:generate      # Generate Prisma client
+npm run db:studio        # Open Prisma Studio (database GUI)
 ```
 
 ### Making Schema Changes
 
 1. Edit `prisma/schema.prisma`
-2. Run `npm run db:push` to apply changes
-3. Prisma client will auto-regenerate
+2. Create migration: `npm run db:migrate --name your_migration_name`
+3. Prisma will generate the migration and apply it automatically
+4. If you need custom SQL (like indexes or extensions), edit the generated migration file
 
-For production migrations, consider using `prisma migrate` instead of `db:push`.
+**Development**: Use `npm run db:migrate` (creates and applies migration)
+**Production**: Use `npm run db:migrate:deploy` (applies pending migrations only)
 
 ## Email Configuration
 
@@ -162,13 +157,50 @@ In development, emails are only sent if `EMAIL_ENABLED=true`. In production, ema
 1. Push your code to GitHub
 2. Import the project in Vercel
 3. Add environment variables (see `.env.example`)
-4. Deploy
+4. Configure build command (see below)
+5. Deploy
 
 Vercel will automatically deploy on every push to your main branch.
 
+### Production Database Setup
+
+#### Step 1: Set up Production Database
+
+1. Create a production Supabase project (or use your existing one)
+2. Copy the production connection string
+3. Add it to Vercel environment variables as `DATABASE_URL`
+
+#### Step 2: Configure Automatic Migrations
+
+**Option A: Using Vercel Build Command (Recommended)**
+
+In Vercel project settings → Build & Development Settings, set:
+
+**Build Command:**
+```bash
+npm run vercel-build
+```
+
+This will automatically:
+- Generate Prisma client
+- Deploy pending migrations
+- Build the Next.js app
+
+**Option B: Manual Migration (Alternative)**
+
+If you prefer to run migrations manually:
+
+```bash
+# Set your production DATABASE_URL
+export DATABASE_URL="your-production-database-url"
+
+# Deploy migrations
+npm run db:migrate:deploy
+```
+
 ### Production Environment Variables
 
-Set these in your hosting platform:
+Set these in your hosting platform (Vercel):
 
 ```env
 DATABASE_URL="your-production-database-url"
@@ -180,10 +212,16 @@ RESEND_API_KEY="your-resend-api-key"
 EMAIL_ENABLED="true"
 ```
 
-**Note**: Make sure to:
-- Update your GitHub OAuth app's callback URL to match your production domain
-- Run the full-text search migration on your production database
-- Set up proper database connection pooling for production
+### Production Deployment Checklist
+
+- [ ] Production Supabase project created
+- [ ] `DATABASE_URL` set in Vercel environment variables
+- [ ] Build command configured to run migrations (or run manually)
+- [ ] All other environment variables set in Vercel
+- [ ] GitHub OAuth callback URL updated to production domain
+- [ ] Test search functionality after deployment
+
+**Note**: See `DEPLOYMENT.md` for detailed step-by-step instructions.
 
 ## Project Structure
 
