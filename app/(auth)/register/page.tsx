@@ -2,7 +2,15 @@ import { RegisterForm } from "@/components/auth/register-form";
 import Link from "next/link";
 import { Code2 } from "lucide-react";
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>
+}) {
+  const params = await searchParams
+  const callbackUrl = params.callbackUrl || ""
+  const loginLink = callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8">
@@ -19,7 +27,7 @@ export default function RegisterPage() {
         
         <p className="text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href={loginLink} className="text-primary hover:underline">
             Sign in
           </Link>
         </p>

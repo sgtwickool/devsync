@@ -2,15 +2,19 @@
 
 import { registerUser } from "@/lib/actions/auth"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Github } from "lucide-react"
 
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isOAuthPending, setIsOAuthPending] = useState(false)
+  
+  // Get callback URL from search params, default to dashboard
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -26,8 +30,35 @@ export function RegisterForm() {
       return
     }
 
-    // Redirect to login page on success
-    router.push("/login?registered=true")
+    // Auto-login after registration
+    try {
+      const email = formData.get("email")
+      const password = formData.get("password")
+      
+      if (email && password) {
+        const signInResult = await signIn("credentials", {
+          email: String(email),
+          password: String(password),
+          redirect: false,
+        })
+
+        if (signInResult?.error) {
+          // Registration succeeded but auto-login failed, redirect to login
+          router.push(`/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}`)
+          return
+        }
+
+        // Successfully registered and logged in, redirect to callback URL
+        router.push(callbackUrl)
+        router.refresh()
+      } else {
+        // Fallback to login page if email/password not available
+        router.push(`/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}`)
+      }
+    } catch {
+      // If auto-login fails, redirect to login page
+      router.push(`/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}`)
+    }
     })
   }
 
@@ -35,7 +66,7 @@ export function RegisterForm() {
     setIsOAuthPending(true)
     setError(null)
     try {
-      await signIn("github", { callbackUrl: "/dashboard" })
+      await signIn("github", { callbackUrl })
     } catch {
       setError("Failed to sign in with GitHub. Please try again.")
       setIsOAuthPending(false)

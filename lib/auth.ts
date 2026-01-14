@@ -62,6 +62,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow relative callback URLs, or callback URLs on the same origin
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allow callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = String(token.id)

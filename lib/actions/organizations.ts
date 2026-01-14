@@ -18,6 +18,7 @@ import {
   hasOrganizationPermission,
   getUserRoleInOrganization,
 } from "@/lib/utils/permissions"
+import { sendInviteEmail } from "@/lib/utils/email"
 import type {
   CreateResult,
   UpdateResult,
@@ -409,7 +410,24 @@ export async function inviteMember(
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7)
 
-    await prisma.organizationInvite.upsert({
+    // Get organization and inviter details for email
+    const [organization, inviter] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { name: true, slug: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { name: true, email: true },
+      }),
+    ])
+
+    if (!organization || !inviter) {
+      return { error: "Organization or user not found" }
+    }
+
+    // Create or update invite
+    const invite = await prisma.organizationInvite.upsert({
       where: {
         email_organizationId: {
           email,
@@ -428,7 +446,29 @@ export async function inviteMember(
         expiresAt,
         invitedById: session.user.id,
       },
+      select: {
+        token: true,
+      },
     })
+
+    // Send invitation email
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const inviteLink = `${baseUrl}/invite/${invite.token}`
+
+    const emailResult = await sendInviteEmail({
+      to: email,
+      organizationName: organization.name,
+      inviterName: inviter.name,
+      inviterEmail: inviter.email,
+      role,
+      inviteLink,
+    })
+
+    // Log email result but don't fail the invite creation if email fails
+    if (!emailResult.success) {
+      console.error("[Invite] Failed to send email:", emailResult.error)
+      // Continue anyway - the invite is created and can be accessed via link
+    }
 
     revalidatePath(`/dashboard/organizations/${organizationId}/members`)
     revalidatePath(`/dashboard/organizations/${organizationId}/settings`)

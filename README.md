@@ -52,6 +52,13 @@ DATABASE_URL="your-postgres-connection-string"
 AUTH_SECRET="generate-a-random-secret-here"
 GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
+
+# Email Configuration (for organization invitations)
+RESEND_API_KEY="your-resend-api-key"
+EMAIL_FROM="noreply@yourdomain.com"
+EMAIL_FROM_NAME="DevSync"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+EMAIL_ENABLED="true"  # Set to "true" to enable emails in development
 ```
 
 Generate a secret key:
@@ -74,7 +81,22 @@ To enable GitHub OAuth authentication:
 4. Click "Register application"
 5. Copy the **Client ID** and **Client Secret** to your `.env` file
 
-4. Set up your PostgreSQL database and add the connection string to `.env` as `DATABASE_URL`.
+### Email Setup (Optional but Recommended)
+
+To enable email invitations for organizations:
+
+1. Sign up for a free account at [Resend](https://resend.com) (100 emails/day free tier)
+2. Create an API key in the Resend dashboard
+3. Add your API key to `.env` as `RESEND_API_KEY`
+4. Configure your sender email:
+   - `EMAIL_FROM`: The email address to send from (e.g., `noreply@yourdomain.com`)
+   - `EMAIL_FROM_NAME`: Display name for emails (e.g., `DevSync`)
+   - `NEXT_PUBLIC_APP_URL`: Your app's URL (e.g., `http://localhost:3000` for dev, or your production URL)
+5. Set `EMAIL_ENABLED="true"` to enable emails in development (emails are always enabled in production)
+
+**Note:** If email is not configured, invitations will still be created and accessible via direct link, but no email will be sent.
+
+6. Set up your PostgreSQL database and add the connection string to `.env` as `DATABASE_URL`.
 
 5. Initialise the database:
 ```bash

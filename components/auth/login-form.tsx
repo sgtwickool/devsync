@@ -1,15 +1,19 @@
 "use client"
 
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Github } from "lucide-react"
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isOAuthPending, setIsOAuthPending] = useState(false)
+  
+  // Get callback URL from search params, default to dashboard
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -37,7 +41,7 @@ export function LoginForm() {
         return
       }
 
-      router.push("/dashboard")
+      router.push(callbackUrl)
       router.refresh()
       } catch {
       setError("Something went wrong. Please try again.")
@@ -49,7 +53,7 @@ export function LoginForm() {
     setIsOAuthPending(true)
     setError(null)
     try {
-      await signIn("github", { callbackUrl: "/dashboard" })
+      await signIn("github", { callbackUrl })
     } catch {
       setError("Failed to sign in with GitHub. Please try again.")
       setIsOAuthPending(false)
