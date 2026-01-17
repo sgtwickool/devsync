@@ -131,8 +131,8 @@ export async function searchSnippetsComprehensive(
     return baseWhere
   }
 
-  // Perform both searches in parallel for better performance
-  const [fullTextIds, tagSnippets] = await Promise.all([
+  // Perform all searches in parallel for better performance
+  const [fullTextIds, tagSnippets, titleSnippets] = await Promise.all([
     searchSnippetsFullText(searchQuery, baseWhere),
     // Search tags using Prisma's contains (simpler and works well for tag names)
     prisma.snippet.findMany({
@@ -151,12 +151,25 @@ export async function searchSnippetsComprehensive(
       },
       select: { id: true },
     }),
+    // Search titles using substring matching for intuitive "find in text" behavior
+    // This allows users to search for any fragment (e.g., "es" finds "test snippet")
+    prisma.snippet.findMany({
+      where: {
+        ...baseWhere,
+        title: {
+          contains: searchQuery,
+          mode: "insensitive",
+        },
+      },
+      select: { id: true },
+    }),
   ])
 
   const tagIds = tagSnippets.map((s) => s.id)
+  const titleIds = titleSnippets.map((s) => s.id)
 
-  // Combine both result sets (full-text search + tag search)
-  const allIds = [...new Set([...fullTextIds, ...tagIds])]
+  // Combine all result sets (full-text search + tag search + title search)
+  const allIds = [...new Set([...fullTextIds, ...tagIds, ...titleIds])]
 
   if (allIds.length === 0) {
     // No results - return condition that matches nothing
