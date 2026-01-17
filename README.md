@@ -65,6 +65,58 @@ npm run dev
 
 6. Visit http://localhost:3000
 
+## Docker / Podman Deployment
+
+The easiest way to run DevSync is with Docker or Podman. A single command spins up both the app and PostgreSQL database.
+
+### One-Liner (Docker)
+
+```bash
+# Clone and run
+git clone https://github.com/sgtwickool/devsync && cd devsync && docker compose up -d
+```
+
+Or if you've already cloned:
+
+```bash
+docker compose up -d
+```
+
+### One-Liner (Podman)
+
+```bash
+podman-compose up -d
+```
+
+The app will be available at http://localhost:3000
+
+### Configuration
+
+By default, the app uses a randomly generated secret. For production, set a proper secret:
+
+```bash
+# Generate a secret
+openssl rand -base64 32
+
+# Run with your secret
+NEXTAUTH_SECRET="your-secret-here" docker compose up -d
+```
+
+### Rebuilding After Changes
+
+```bash
+docker compose up -d --build
+```
+
+### Stopping
+
+```bash
+docker compose down
+
+# To also remove the database volume:
+docker compose down -v
+```
+
 ## Database Setup
 
 ### Option A: Local PostgreSQL
