@@ -7,6 +7,7 @@ import { CodeViewer } from "@/components/snippets/code-viewer"
 import { DeleteSnippetButton } from "@/components/snippets/delete-snippet-button"
 import { EditSnippetDialog } from "@/components/snippets/edit-snippet-dialog"
 import { CopyCodeButton } from "@/components/snippets/copy-code-button"
+import { ShareLinkButton } from "@/components/snippets/share-link-button"
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button"
 import { formatFullDate, getLanguageColor } from "@/lib/utils"
 import { canUserAccessSnippet } from "@/lib/utils/permissions"
@@ -176,7 +177,8 @@ export default async function SnippetDetailPage({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <ShareLinkButton snippetId={snippet.id} isPublic={snippet.visibility === "PUBLIC"} />
           <EditSnippetDialog 
             snippet={{
               id: snippet.id,
