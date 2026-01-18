@@ -5,7 +5,7 @@ A modern, open-source code snippet manager with team collaboration built in. Org
 ## Features
 
 - **Full-Text Search**: PostgreSQL-powered full-text search across titles, descriptions, code, and tags
-- **Syntax Highlighting**: Beautiful code rendering with support for 100+ languages
+- **Syntax Highlighting**: Beautiful code rendering with support for 150+ languages via Shiki
 - **Team Collaboration**: Share snippets with your team through organizations
 - **Collections & Tags**: Organize snippets into logical groups
 - **Secure & Private**: Your code stays yours. Self-host or use our cloud
@@ -306,7 +306,7 @@ EMAIL_ENABLED="true"
 - ✅ User authentication (email/password and GitHub OAuth)
 - ✅ Full-text search across snippets (title, description, code, language, tags)
 - ✅ Create, edit, and delete snippets
-- ✅ Syntax highlighting for 100+ languages
+- ✅ Syntax highlighting for 150+ languages
 - ✅ Collections and tags
 - ✅ Team collaboration through organizations
 - ✅ Organization member management

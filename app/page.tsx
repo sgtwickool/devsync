@@ -63,7 +63,7 @@ export default function Home() {
           <FeatureCard 
             icon={<Code2 className="w-10 h-10 text-primary" />}
             title="Syntax Highlighting"
-            description="Beautiful code rendering with support for 100+ languages"
+            description="Beautiful code rendering with support for 150+ languages"
           />
           <FeatureCard 
             icon={<Search className="w-10 h-10 text-primary" />}
