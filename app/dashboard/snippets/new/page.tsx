@@ -25,6 +25,34 @@ export default function NewSnippetPage() {
   const [visibility, setVisibility] = useState<"PRIVATE" | "TEAM" | "PUBLIC">("PRIVATE")
   const [organizations, setOrganizations] = useState<Array<{ organization: { id: string; name: string; slug: string } }>>([])
 
+  function handleOrgChange(orgId: string) {
+    setOrganizationId(orgId)
+    if (orgId) {
+      // Selecting org: default to TEAM visibility
+      setVisibility("TEAM")
+    } else {
+      // Deselecting org: if TEAM was selected, reset to PRIVATE
+      if (visibility === "TEAM") {
+        setVisibility("PRIVATE")
+      }
+    }
+  }
+
+  function handleVisibilityChange(newVisibility: "PRIVATE" | "TEAM" | "PUBLIC") {
+    if (newVisibility === "TEAM" && !organizationId) {
+      // Can't select TEAM without an organization
+      return
+    }
+    
+    // If changing from TEAM to PRIVATE, deselect the org
+    // (creating in org but keeping private doesn't make sense)
+    if (visibility === "TEAM" && newVisibility === "PRIVATE" && organizationId) {
+      setOrganizationId("")
+    }
+    
+    setVisibility(newVisibility)
+  }
+
   // Fetch user's organizations
   useEffect(() => {
     async function fetchOrganizations() {
@@ -221,14 +249,14 @@ export default function NewSnippetPage() {
             <OrganizationSelector
               organizations={organizations}
               value={organizationId}
-              onChange={setOrganizationId}
+              onChange={handleOrgChange}
             />
           )}
 
           {/* Visibility Selector */}
           <VisibilitySelector
             value={visibility}
-            onChange={setVisibility}
+            onChange={handleVisibilityChange}
             hasOrganization={!!organizationId}
           />
 

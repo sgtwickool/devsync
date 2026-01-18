@@ -3,7 +3,7 @@
 import { updateSnippet } from "@/lib/actions/snippets"
 import { useRouter } from "next/navigation"
 import { useState, useTransition, useEffect } from "react"
-import { Edit, ChevronDown, Tag } from "lucide-react"
+import { Edit, ChevronDown, Tag, AlertTriangle, Building2 } from "lucide-react"
 import { LANGUAGES } from "@/lib/constants/languages"
 import { Dialog } from "@/components/ui/dialog"
 import { ErrorAlert } from "@/components/ui/error-alert"
@@ -12,6 +12,12 @@ import { TagInput } from "@/components/snippets/tag-input"
 import { CodeEditor } from "@/components/snippets/code-editor"
 import { VisibilitySelector } from "@/components/snippets/visibility-selector"
 import { toast } from "sonner"
+
+interface Organization {
+  id: string
+  name: string
+  slug: string
+}
 
 interface EditSnippetDialogProps {
   snippet: {
@@ -37,6 +43,27 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
   const [code, setCode] = useState(snippet.code)
   const [language, setLanguage] = useState(snippet.language)
   const [visibility, setVisibility] = useState<"PRIVATE" | "TEAM" | "PUBLIC">(snippet.visibility)
+  const [organizations, setOrganizations] = useState<Array<{ organization: Organization }>>([])
+  const [selectedOrgId, setSelectedOrgId] = useState<string>("")
+  const [showPromotionWarning, setShowPromotionWarning] = useState(false)
+
+  // Fetch organizations when dialog opens (only for personal snippets)
+  useEffect(() => {
+    if (isOpen && snippet.organizationId === null) {
+      async function fetchOrganizations() {
+        try {
+          const response = await fetch("/api/organizations")
+          if (response.ok) {
+            const data = await response.json()
+            setOrganizations(data)
+          }
+        } catch {
+          // Silently fail - organizations are optional
+        }
+      }
+      fetchOrganizations()
+    }
+  }, [isOpen, snippet.organizationId])
 
   useEffect(() => {
     if (isOpen) {
@@ -46,8 +73,44 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
       setCode(snippet.code)
       setLanguage(snippet.language)
       setVisibility(snippet.visibility)
+      setSelectedOrgId("")
+      setShowPromotionWarning(false)
     }
   }, [isOpen, snippet.tags, snippet.title, snippet.description, snippet.code, snippet.language, snippet.visibility])
+
+  function handleOrgChange(orgId: string) {
+    setSelectedOrgId(orgId)
+    setShowPromotionWarning(!!orgId)
+    
+    if (orgId) {
+      // Promoting to org: default to TEAM visibility
+      setVisibility("TEAM")
+    } else {
+      // Deselecting org: if TEAM was selected, reset to PRIVATE (TEAM is invalid without org)
+      if (visibility === "TEAM") {
+        setVisibility("PRIVATE")
+      }
+    }
+  }
+
+  // Handle visibility changes with org synchronization
+  function handleVisibilityChange(newVisibility: "PRIVATE" | "TEAM" | "PUBLIC") {
+    const hasOrg = !!snippet.organizationId || !!selectedOrgId
+    
+    if (newVisibility === "TEAM" && !hasOrg) {
+      // Can't select TEAM without an organization
+      return
+    }
+    
+    // If changing from TEAM to PRIVATE, deselect the org
+    // (promoting to org but keeping private doesn't make sense)
+    if (visibility === "TEAM" && newVisibility === "PRIVATE" && selectedOrgId) {
+      setSelectedOrgId("")
+      setShowPromotionWarning(false)
+    }
+    
+    setVisibility(newVisibility)
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -56,6 +119,11 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
     const formData = new FormData(e.currentTarget)
     formData.append("tags", JSON.stringify(tags))
     formData.append("visibility", visibility)
+    
+    // Include organizationId if promoting to an org
+    if (selectedOrgId) {
+      formData.append("organizationId", selectedOrgId)
+    }
     
     startTransition(async () => {
       const result = await updateSnippet(snippet.id, formData)
@@ -68,7 +136,10 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
         return
       }
 
-      toast.success("Snippet updated successfully")
+      const successMessage = selectedOrgId 
+        ? "Snippet promoted to organization" 
+        : "Snippet updated successfully"
+      toast.success(successMessage)
       setIsOpen(false)
       router.refresh()
     })
@@ -176,10 +247,53 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
                   </div>
                 </div>
 
+                  {/* Organization Promotion - only for personal snippets */}
+                  {snippet.organizationId === null && organizations.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="edit-organizationId"
+                          className="flex items-center gap-2 text-sm font-semibold text-foreground"
+                        >
+                          <Building2 className="w-4 h-4 text-primary" aria-hidden="true" />
+                          Promote to Organization
+                          <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                        </label>
+                        <select
+                          id="edit-organizationId"
+                          value={selectedOrgId}
+                          onChange={(e) => handleOrgChange(e.target.value)}
+                          className="w-full px-4 py-3 bg-background border border-input rounded-lg text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent hover:border-input/80"
+                        >
+                          <option value="">Keep as Personal Snippet</option>
+                          {organizations.map(({ organization }) => (
+                            <option key={organization.id} value={organization.id}>
+                              {organization.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {showPromotionWarning && (
+                        <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="font-medium text-amber-800 dark:text-amber-400">
+                              This action cannot be undone
+                            </p>
+                            <p className="text-amber-700 dark:text-amber-500 mt-1">
+                              Moving this snippet to an organization is permanent. All team members will be able to see it based on the visibility setting below.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <VisibilitySelector
                     value={visibility}
-                    onChange={setVisibility}
-                    hasOrganization={!!snippet.organizationId}
+                    onChange={handleVisibilityChange}
+                    hasOrganization={!!snippet.organizationId || !!selectedOrgId}
                   />
 
                   <div>

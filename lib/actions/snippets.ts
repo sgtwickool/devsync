@@ -167,6 +167,10 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
     // Verify snippet exists and user can modify it
     const existingSnippet = await prisma.snippet.findUnique({
       where: { id: snippetId },
+      include: { 
+        tags: { include: { tag: true } },
+        collections: true,
+      },
     })
 
     if (!existingSnippet) {
@@ -185,6 +189,7 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       language: formData.get("language"),
       tags: formData.get("tags"),
       visibility: formData.get("visibility"),
+      organizationId: formData.get("organizationId"),
     }
 
     // Validate all required fields are strings
@@ -208,16 +213,48 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
         ? (rawData.visibility as "PRIVATE" | "TEAM" | "PUBLIC")
         : existingSnippet.visibility
 
-    // Parse tags and get current tags
-    const tagNames = parseTagsFromFormData(rawData.tags)
-    const currentSnippet = await prisma.snippet.findUnique({
-      where: { id: snippetId },
-      include: { tags: { include: { tag: true } } },
-    })
+    // Handle organization promotion (one-way: personal -> org)
+    let newOrganizationId = existingSnippet.organizationId
+    const requestedOrgId = typeof rawData.organizationId === "string" && rawData.organizationId !== "" 
+      ? rawData.organizationId 
+      : null
 
-    const currentTagNames = currentSnippet?.tags.map((st) => st.tag.name) || []
-    const tagsToAdd = tagNames.filter((t) => !currentTagNames.includes(t))
-    const tagsToRemove = currentTagNames.filter((t) => !tagNames.includes(t))
+    if (requestedOrgId && existingSnippet.organizationId === null) {
+      // Promoting personal snippet to organization
+      // Verify user is a member of the target organization
+      const isMember = await prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId: requestedOrgId,
+          },
+        },
+      })
+
+      if (!isMember) {
+        return { error: "You are not a member of this organization" }
+      }
+
+      newOrganizationId = requestedOrgId
+
+      // Remove from any personal collections (collections are org-scoped)
+      if (existingSnippet.collections.length > 0) {
+        await prisma.snippetCollection.deleteMany({
+          where: { snippetId },
+        })
+      }
+
+      // Remove existing tag associations (we'll recreate them in the new org context)
+      await prisma.snippetTag.deleteMany({
+        where: { snippetId },
+      })
+    } else if (requestedOrgId && existingSnippet.organizationId !== null) {
+      // Trying to change organization - not allowed
+      return { error: "Cannot move snippet between organizations" }
+    }
+
+    // Parse tags
+    const tagNames = parseTagsFromFormData(rawData.tags)
 
     // Update snippet
     await prisma.snippet.update({
@@ -228,36 +265,54 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
         code: validated.code,
         language: validated.language,
         visibility,
+        organizationId: newOrganizationId,
       },
     })
 
-    // Add new tags (scoped to organization if snippet belongs to one)
-    await Promise.all(
-      tagsToAdd.map(async (tagName) => {
-        const tag = await getOrCreateTag(prisma, tagName, existingSnippet.organizationId)
-        await prisma.snippetTag.create({
-          data: { snippetId, tagId: tag.id },
-        })
-      })
-    )
-
-    // Remove tags
-    await Promise.all(
-      tagsToRemove.map(async (tagName) => {
-        // Find tag in the same organization context
-        const tag = await prisma.tag.findFirst({
-          where: {
-            name: tagName,
-            organizationId: existingSnippet.organizationId,
-          },
-        })
-        if (tag) {
-          await prisma.snippetTag.delete({
-            where: { snippetId_tagId: { snippetId, tagId: tag.id } },
+    // Handle tags based on whether we're promoting or just updating
+    if (requestedOrgId && existingSnippet.organizationId === null) {
+      // Promoting: create all tags fresh in the new org context
+      await Promise.all(
+        tagNames.map(async (tagName) => {
+          const tag = await getOrCreateTag(prisma, tagName, newOrganizationId)
+          await prisma.snippetTag.create({
+            data: { snippetId, tagId: tag.id },
           })
-        }
-      })
-    )
+        })
+      )
+    } else {
+      // Normal update: add/remove tags as needed
+      const currentTagNames = existingSnippet.tags.map((st) => st.tag.name)
+      const tagsToAdd = tagNames.filter((t) => !currentTagNames.includes(t))
+      const tagsToRemove = currentTagNames.filter((t) => !tagNames.includes(t))
+
+      // Add new tags
+      await Promise.all(
+        tagsToAdd.map(async (tagName) => {
+          const tag = await getOrCreateTag(prisma, tagName, existingSnippet.organizationId)
+          await prisma.snippetTag.create({
+            data: { snippetId, tagId: tag.id },
+          })
+        })
+      )
+
+      // Remove tags
+      await Promise.all(
+        tagsToRemove.map(async (tagName) => {
+          const tag = await prisma.tag.findFirst({
+            where: {
+              name: tagName,
+              organizationId: existingSnippet.organizationId,
+            },
+          })
+          if (tag) {
+            await prisma.snippetTag.delete({
+              where: { snippetId_tagId: { snippetId, tagId: tag.id } },
+            })
+          }
+        })
+      )
+    }
 
     revalidatePath("/dashboard")
     revalidatePath(`/dashboard/snippets/${snippetId}`)
