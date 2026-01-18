@@ -104,7 +104,7 @@ export async function updateCollection(collectionId: string, formData: FormData)
     // Check access: personal collection (userId match) or org collection (user is member)
     const hasAccess =
       existingCollection.userId === session.user.id ||
-      (existingCollection.organizationId && existingCollection.organization?.members.length > 0)
+      (existingCollection.organizationId && (existingCollection.organization?.members?.length ?? 0) > 0)
 
     if (!hasAccess) {
       return { error: "Unauthorized" }
@@ -168,7 +168,7 @@ export async function deleteCollection(collectionId: string): Promise<DeleteResu
     // Check access: personal collection (userId match) or org collection (user is member)
     const hasAccess =
       collection.userId === session.user.id ||
-      (collection.organizationId && collection.organization?.members.length > 0)
+      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
 
     if (!hasAccess) {
       return { error: "Unauthorized" }
@@ -214,7 +214,7 @@ export async function addSnippetToCollection(collectionId: string, snippetId: st
     // Check access: personal collection (userId match) or org collection (user is member)
     const hasAccess =
       collection.userId === session.user.id ||
-      (collection.organizationId && collection.organization?.members.length > 0)
+      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
 
     if (!hasAccess) {
       return { error: "Unauthorized" }
@@ -241,7 +241,7 @@ export async function addSnippetToCollection(collectionId: string, snippetId: st
     // Check access and context match
     const hasSnippetAccess =
       snippet.userId === session.user.id ||
-      (snippet.organizationId && snippet.organization?.members.length > 0)
+      (snippet.organizationId && (snippet.organization?.members?.length ?? 0) > 0)
 
     if (!hasSnippetAccess) {
       return { error: "Snippet not found or unauthorized" }
@@ -326,7 +326,7 @@ export async function reorderSnippetInCollection(
     // Check access: personal collection (userId match) or org collection (user is member)
     const hasAccess =
       collection.userId === session.user.id ||
-      (collection.organizationId && collection.organization?.members.length > 0)
+      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
 
     if (!hasAccess) {
       return { error: "Unauthorized" }
@@ -415,7 +415,7 @@ export async function removeSnippetFromCollection(collectionId: string, snippetI
     // Check access: personal collection (userId match) or org collection (user is member)
     const hasAccess =
       collection.userId === session.user.id ||
-      (collection.organizationId && collection.organization?.members.length > 0)
+      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
 
     if (!hasAccess) {
       return { error: "Unauthorized" }

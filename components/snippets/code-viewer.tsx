@@ -1,93 +1,6 @@
 import { codeToHtml } from "shiki"
 import { cn } from "@/lib/utils"
-
-/**
- * Maps display language names to Shiki language identifiers
- * Shiki supports 150+ languages - this maps our UI names to Shiki's IDs
- */
-const SHIKI_LANGUAGE_MAP: Record<string, string> = {
-  // Popular languages
-  JavaScript: "javascript",
-  TypeScript: "typescript",
-  React: "tsx",
-  Python: "python",
-  Java: "java",
-  "C++": "cpp",
-  "C#": "csharp",
-  C: "c",
-  Go: "go",
-  Rust: "rust",
-  PHP: "php",
-  Ruby: "ruby",
-  Swift: "swift",
-  Kotlin: "kotlin",
-  Scala: "scala",
-  
-  // Web
-  HTML: "html",
-  CSS: "css",
-  SCSS: "scss",
-  SASS: "sass",
-  Less: "less",
-  Vue: "vue",
-  Svelte: "svelte",
-  
-  // Data & Config
-  JSON: "json",
-  YAML: "yaml",
-  TOML: "toml",
-  XML: "xml",
-  GraphQL: "graphql",
-  
-  // Shell & Scripts
-  Bash: "bash",
-  Shell: "shellscript",
-  PowerShell: "powershell",
-  Fish: "fish",
-  Zsh: "zsh",
-  
-  // Systems
-  Zig: "zig",
-  Nim: "nim",
-  Haskell: "haskell",
-  Elixir: "elixir",
-  Erlang: "erlang",
-  Clojure: "clojure",
-  "F#": "fsharp",
-  OCaml: "ocaml",
-  Lua: "lua",
-  Perl: "perl",
-  R: "r",
-  Julia: "julia",
-  Dart: "dart",
-  
-  // Databases
-  SQL: "sql",
-  PostgreSQL: "sql",
-  MySQL: "sql",
-  
-  // DevOps & Infrastructure
-  Dockerfile: "dockerfile",
-  Terraform: "hcl",
-  HCL: "hcl",
-  Nginx: "nginx",
-  
-  // Documentation
-  Markdown: "markdown",
-  LaTeX: "latex",
-  
-  // Mobile
-  "Objective-C": "objective-c",
-  
-  // Assembly & Low-level
-  Assembly: "asm",
-  WebAssembly: "wasm",
-  
-  // Other
-  Diff: "diff",
-  Regex: "regex",
-  Other: "text",
-}
+import { getShikiLanguage } from "@/lib/constants/languages"
 
 interface CodeViewerProps {
   code: string
@@ -96,7 +9,7 @@ interface CodeViewerProps {
 
 export async function CodeViewer({ code, language }: CodeViewerProps) {
   // Map the display language to Shiki's language ID
-  const shikiLang = SHIKI_LANGUAGE_MAP[language] || language.toLowerCase() || "text"
+  const shikiLang = getShikiLanguage(language)
   
   let html: string
   

@@ -62,7 +62,7 @@ export default function NewSnippetPage() {
           const data = await response.json()
           setOrganizations(data)
         }
-      } catch (error) {
+      } catch {
         // Silently fail - organizations are optional
       }
     }

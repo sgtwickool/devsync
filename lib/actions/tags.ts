@@ -4,11 +4,12 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { handleServerActionError } from "@/lib/utils/errors"
+import { normalizeTag, getOrCreateTag } from "@/lib/utils/tags"
 import type { UpdateResult } from "@/lib/types/actions"
 
 /**
  * Add tags to a snippet
- * Tags are created if they don't exist (global tags, not user-specific)
+ * Tags are scoped to the snippet's organization (or personal if no org)
  */
 export async function addTagsToSnippet(snippetId: string, tagNames: string[]): Promise<UpdateResult> {
   try {
@@ -18,10 +19,10 @@ export async function addTagsToSnippet(snippetId: string, tagNames: string[]): P
       return { error: "Unauthorized" }
     }
 
-    // Verify snippet belongs to user
+    // Verify snippet belongs to user and get organizationId
     const snippet = await prisma.snippet.findUnique({
       where: { id: snippetId },
-      select: { userId: true },
+      select: { userId: true, organizationId: true },
     })
 
     if (!snippet) {
@@ -34,15 +35,11 @@ export async function addTagsToSnippet(snippetId: string, tagNames: string[]): P
 
     // Process each tag
     for (const tagName of tagNames) {
-      const trimmedName = tagName.trim().toLowerCase()
-      if (!trimmedName) continue
+      const normalizedName = normalizeTag(tagName)
+      if (!normalizedName) continue
 
-      // Find or create tag
-      const tag = await prisma.tag.upsert({
-        where: { name: trimmedName },
-        update: {},
-        create: { name: trimmedName },
-      })
+      // Find or create tag scoped to snippet's organization
+      const tag = await getOrCreateTag(prisma, normalizedName, snippet.organizationId)
 
       // Create snippet-tag relationship if it doesn't exist
       await prisma.snippetTag.upsert({

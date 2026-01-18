@@ -16,7 +16,7 @@ import { markdown } from "@codemirror/lang-markdown"
 import { rust } from "@codemirror/lang-rust"
 import { php } from "@codemirror/lang-php"
 import { csharp } from "@replit/codemirror-lang-csharp"
-import { LANGUAGE_MAP } from "@/lib/constants/languages"
+import { getCodeMirrorLanguage } from "@/lib/constants/languages"
 import { cn } from "@/lib/utils"
 
 const jsLang = () => javascript({ jsx: false })
@@ -64,9 +64,7 @@ export function CodeEditor({
   className,
   "aria-describedby": ariaDescribedBy,
 }: CodeEditorProps) {
-  const codeMirrorLanguage = (language in LANGUAGE_MAP
-    ? LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP]
-    : "javascript") satisfies string
+  const codeMirrorLanguage = getCodeMirrorLanguage(language)
 
   const languageExtension = useMemo(
     () => (languageLoaders[codeMirrorLanguage] || jsLang)(),

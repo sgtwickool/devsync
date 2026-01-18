@@ -54,8 +54,14 @@ export async function canUserAccessSnippet(
   userId: string,
   snippet: Snippet
 ): Promise<boolean> {
-  // Personal snippet - only creator can access
+  // PUBLIC snippets are visible to everyone (regardless of org)
+  if (snippet.visibility === "PUBLIC") {
+    return true
+  }
+  
+  // Personal snippet (no organization)
   if (!snippet.organizationId) {
+    // Only creator can access non-public personal snippets
     return snippet.userId === userId
   }
   
@@ -77,11 +83,6 @@ export async function canUserAccessSnippet(
     })
     
     return !!isMember
-  }
-  
-  if (snippet.visibility === "PUBLIC") {
-    // Public snippets visible to everyone (future feature)
-    return true
   }
   
   return false

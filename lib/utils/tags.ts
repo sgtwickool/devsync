@@ -38,6 +38,8 @@ export function parseTagsFromFormData(tags: FormDataEntryValue | null): string[]
  * Creates or finds a tag by name, scoped to organization if provided
  * Uses findFirst + create pattern because Prisma's upsert doesn't work well
  * with compound unique keys that have nullable fields
+ * 
+ * Handles race conditions by catching unique constraint violations and retrying
  */
 export async function getOrCreateTag(
   prisma: PrismaClient,
@@ -60,11 +62,35 @@ export async function getOrCreateTag(
   }
 
   // Create new tag if it doesn't exist
-  return prisma.tag.create({
-    data: {
-      name: normalizedName,
-      organizationId: orgId,
-    },
-  })
+  // Handle race condition: if another request created the tag between
+  // our findFirst and create, catch the unique constraint error and find it
+  try {
+    return await prisma.tag.create({
+      data: {
+        name: normalizedName,
+        organizationId: orgId,
+      },
+    })
+  } catch (error) {
+    // Check if it's a unique constraint violation (P2002 in Prisma)
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: string }).code === 'P2002'
+    ) {
+      // Tag was created by another request, find and return it
+      const tag = await prisma.tag.findFirst({
+        where: {
+          name: normalizedName,
+          organizationId: orgId,
+        },
+      })
+      if (tag) {
+        return tag
+      }
+    }
+    // Re-throw if it's a different error
+    throw error
+  }
 }
 

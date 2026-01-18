@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import { SnippetVisibility, type Prisma } from "@prisma/client"
 
 /**
  * Generate a URL-safe slug from organization name
@@ -112,8 +112,9 @@ export async function buildSnippetWhereClause(
   const orgCondition: Prisma.SnippetWhereInput = {
     organizationId: { in: orgIds },
     OR: [
-      { visibility: "TEAM" }, // Team snippets visible to all members
-      { userId, visibility: "PRIVATE" }, // Private snippets only visible to creator
+      { visibility: SnippetVisibility.TEAM }, // Team snippets visible to all members
+      { visibility: SnippetVisibility.PUBLIC }, // Public snippets visible to all
+      { userId, visibility: SnippetVisibility.PRIVATE }, // Private snippets only visible to creator
     ],
   }
   
@@ -143,8 +144,9 @@ export async function buildSnippetWhereClause(
     return {
       organizationId: org.id,
       OR: [
-        { visibility: "TEAM" },
-        { userId, visibility: "PRIVATE" },
+        { visibility: SnippetVisibility.TEAM },
+        { visibility: SnippetVisibility.PUBLIC },
+        { userId, visibility: SnippetVisibility.PRIVATE },
       ],
     }
   }

@@ -9,19 +9,8 @@ import { parseTagsFromFormData, getOrCreateTag } from "@/lib/utils/tags"
 import { canUserAccessSnippet, canUserModifySnippet } from "@/lib/utils/permissions"
 import type { CreateSnippetResult, UpdateResult, DeleteResult } from "@/lib/types/actions"
 
-const createSnippetSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  code: z.string().min(1, "Code is required"),
-  language: z.string().min(1, "Language is required"),
-}) satisfies z.ZodType<{
-  title: string
-  description?: string
-  code: string
-  language: string
-}>
-
-const updateSnippetSchema = z.object({
+// Schema for snippet validation (used for both create and update)
+const snippetSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   code: z.string().min(1, "Code is required"),
@@ -60,7 +49,7 @@ export async function createSnippet(formData: FormData): Promise<CreateSnippetRe
       return { error: "Title, code, and language are required" }
     }
 
-    const validated = createSnippetSchema.parse({
+    const validated = snippetSchema.parse({
       title: rawData.title,
       description: typeof rawData.description === "string" ? rawData.description : undefined,
       code: rawData.code,
@@ -201,7 +190,7 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
       return { error: "Title, code, and language are required" }
     }
 
-    const validated = updateSnippetSchema.parse({
+    const validated = snippetSchema.parse({
       title: rawData.title,
       description: typeof rawData.description === "string" ? rawData.description : undefined,
       code: rawData.code,

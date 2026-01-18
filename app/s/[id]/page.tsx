@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { SnippetVisibility } from "@prisma/client"
 import { notFound } from "next/navigation"
 import { Calendar, Tag, Code2, ExternalLink } from "lucide-react"
 import Link from "next/link"
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params
   
   const snippet = await prisma.snippet.findUnique({
-    where: { id, visibility: "PUBLIC" },
+    where: { id, visibility: SnippetVisibility.PUBLIC },
     select: { title: true, description: true, language: true },
   })
 
@@ -49,7 +50,7 @@ export default async function PublicSnippetPage({ params }: PageProps) {
   })
 
   // Only show public snippets
-  if (!snippet || snippet.visibility !== "PUBLIC") {
+  if (!snippet || snippet.visibility !== SnippetVisibility.PUBLIC) {
     notFound()
   }
 

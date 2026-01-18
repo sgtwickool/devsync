@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { SnippetVisibility } from "@prisma/client"
 import { redirect, notFound } from "next/navigation"
 import { ArrowLeft, Folder, Calendar, FileCode, Code2, Tag, ChevronRight, ChevronLeft } from "lucide-react"
 import Link from "next/link"
@@ -95,8 +96,9 @@ export default async function CollectionDetailPage({
     ? {
         organizationId: collection.organizationId,
         OR: [
-          { visibility: "TEAM" },
-          { userId: session.user.id, visibility: "PRIVATE" },
+          { visibility: SnippetVisibility.TEAM },
+          { visibility: SnippetVisibility.PUBLIC },
+          { userId: session.user.id, visibility: SnippetVisibility.PRIVATE },
         ],
       }
     : {
