@@ -36,6 +36,8 @@ export function parseTagsFromFormData(tags: FormDataEntryValue | null): string[]
 
 /**
  * Creates or finds a tag by name, scoped to organization if provided
+ * Uses findFirst + create pattern because Prisma's upsert doesn't work well
+ * with compound unique keys that have nullable fields
  */
 export async function getOrCreateTag(
   prisma: PrismaClient,
@@ -43,19 +45,25 @@ export async function getOrCreateTag(
   organizationId?: string | null
 ): Promise<{ id: string; name: string }> {
   const normalizedName = normalizeTag(tagName)
+  const orgId = organizationId || null
   
-  // Tags are scoped by organizationId (null for personal tags)
-  return prisma.tag.upsert({
+  // First try to find existing tag
+  const existingTag = await prisma.tag.findFirst({
     where: {
-      name_organizationId: {
-        name: normalizedName,
-        organizationId: organizationId || null,
-      },
-    },
-    update: {},
-    create: {
       name: normalizedName,
-      organizationId: organizationId || null,
+      organizationId: orgId,
+    },
+  })
+
+  if (existingTag) {
+    return existingTag
+  }
+
+  // Create new tag if it doesn't exist
+  return prisma.tag.create({
+    data: {
+      name: normalizedName,
+      organizationId: orgId,
     },
   })
 }

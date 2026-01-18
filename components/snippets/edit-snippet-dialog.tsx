@@ -306,6 +306,7 @@ export function EditSnippetDialog({ snippet }: EditSnippetDialogProps) {
                       tags={tags}
                       onChange={setTags}
                       placeholder="e.g., algorithm, sorting, python"
+                      organizationId={selectedOrgId || snippet.organizationId}
                     />
                   </div>
 

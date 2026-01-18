@@ -274,6 +274,7 @@ export default function NewSnippetPage() {
               tags={tags}
               onChange={setTags}
               placeholder="e.g., algorithm, sorting, python"
+              organizationId={organizationId || null}
             />
           </div>
 
