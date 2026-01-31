@@ -221,6 +221,15 @@ export default async function DashboardPage({
       </div>
 
       {/* Content */}
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        className="sr-only"
+      >
+        {searchQuery
+          ? `${snippets.length} ${snippets.length === 1 ? "snippet" : "snippets"} found for "${searchQuery}"`
+          : `${snippets.length} ${snippets.length === 1 ? "snippet" : "snippets"}`}
+      </div>
       {snippets.length === 0 ? (
         <div className="text-center py-16 bg-gradient-to-br from-card to-card/95 border-2 border-dashed border-border rounded-xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-50" />

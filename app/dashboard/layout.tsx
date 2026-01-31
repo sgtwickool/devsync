@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { Code2, LogOut, Plus, Search } from "lucide-react"
+import { Code2, LogOut } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "@/lib/auth"
+import { MobileNav } from "@/components/dashboard/mobile-nav"
 
 export default async function DashboardLayout({
   children,
@@ -20,14 +21,16 @@ export default async function DashboardLayout({
       <nav className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-4 sm:gap-8">
+              <MobileNav />
+
               <Link href="/dashboard" className="flex items-center gap-2 group">
                 <div className="p-1.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
                   <Code2 className="w-6 h-6 text-primary" />
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">DevSync</span>
               </Link>
-              
+
               <div className="hidden md:flex gap-6">
                 <Link 
                   href="/dashboard" 

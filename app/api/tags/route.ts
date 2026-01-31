@@ -1,12 +1,21 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { rateLimit } from "@/lib/utils/rate-limit"
 
 export async function GET(request: Request) {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const rateLimitResult = rateLimit(`tags:${session.user.id}`)
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": "60" } }
+    )
   }
 
   const { searchParams } = new URL(request.url)

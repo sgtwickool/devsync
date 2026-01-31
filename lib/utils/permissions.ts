@@ -1,7 +1,31 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import type { Snippet, MemberRole } from "@prisma/client"
+import type { Snippet, MemberRole, Collection, Organization, OrganizationMember } from "@prisma/client"
+
+type CollectionWithOrg = Collection & {
+  organization?: (Organization & { members?: OrganizationMember[] }) | null
+}
+
+/**
+ * Check if user can access a collection
+ * Personal collection: only owner can access
+ * Org collection: any member can access
+ */
+export async function canUserAccessCollection(
+  userId: string,
+  collection: CollectionWithOrg
+): Promise<boolean> {
+  // Personal collection: only owner
+  if (collection.userId === userId) return true
+
+  // Org collection: any member
+  if (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0) {
+    return true
+  }
+
+  return false
+}
 
 /**
  * Get user's role in an organization

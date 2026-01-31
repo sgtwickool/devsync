@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { handleServerActionError } from "@/lib/utils/errors"
+import { canUserAccessCollection } from "@/lib/utils/permissions"
 import type { CreateCollectionResult, UpdateResult, DeleteResult } from "@/lib/types/actions"
 
 const createCollectionSchema = z.object({
@@ -101,12 +102,7 @@ export async function updateCollection(collectionId: string, formData: FormData)
       return { error: "Collection not found" }
     }
 
-    // Check access: personal collection (userId match) or org collection (user is member)
-    const hasAccess =
-      existingCollection.userId === session.user.id ||
-      (existingCollection.organizationId && (existingCollection.organization?.members?.length ?? 0) > 0)
-
-    if (!hasAccess) {
+    if (!(await canUserAccessCollection(session.user.id, existingCollection))) {
       return { error: "Unauthorized" }
     }
 
@@ -165,12 +161,7 @@ export async function deleteCollection(collectionId: string): Promise<DeleteResu
       return { error: "Collection not found" }
     }
 
-    // Check access: personal collection (userId match) or org collection (user is member)
-    const hasAccess =
-      collection.userId === session.user.id ||
-      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
-
-    if (!hasAccess) {
+    if (!(await canUserAccessCollection(session.user.id, collection))) {
       return { error: "Unauthorized" }
     }
 
@@ -211,12 +202,7 @@ export async function addSnippetToCollection(collectionId: string, snippetId: st
       return { error: "Collection not found" }
     }
 
-    // Check access: personal collection (userId match) or org collection (user is member)
-    const hasAccess =
-      collection.userId === session.user.id ||
-      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
-
-    if (!hasAccess) {
+    if (!(await canUserAccessCollection(session.user.id, collection))) {
       return { error: "Unauthorized" }
     }
 
@@ -323,12 +309,7 @@ export async function reorderSnippetInCollection(
       return { error: "Collection not found" }
     }
 
-    // Check access: personal collection (userId match) or org collection (user is member)
-    const hasAccess =
-      collection.userId === session.user.id ||
-      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
-
-    if (!hasAccess) {
+    if (!(await canUserAccessCollection(session.user.id, collection))) {
       return { error: "Unauthorized" }
     }
 
@@ -412,12 +393,7 @@ export async function removeSnippetFromCollection(collectionId: string, snippetI
       return { error: "Collection not found" }
     }
 
-    // Check access: personal collection (userId match) or org collection (user is member)
-    const hasAccess =
-      collection.userId === session.user.id ||
-      (collection.organizationId && (collection.organization?.members?.length ?? 0) > 0)
-
-    if (!hasAccess) {
+    if (!(await canUserAccessCollection(session.user.id, collection))) {
       return { error: "Unauthorized" }
     }
 

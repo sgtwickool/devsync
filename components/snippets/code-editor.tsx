@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { oneDark } from "@codemirror/theme-one-dark"
+import { githubLight } from "@uiw/codemirror-theme-github"
 import { javascript } from "@codemirror/lang-javascript"
 import { python } from "@codemirror/lang-python"
 import { java } from "@codemirror/lang-java"
@@ -49,6 +50,7 @@ interface CodeEditorProps {
   required?: boolean
   rows?: number
   className?: string
+  theme?: "light" | "dark"
   "aria-describedby"?: string
 }
 
@@ -62,6 +64,7 @@ export function CodeEditor({
   required,
   rows = 15,
   className,
+  theme = "dark",
   "aria-describedby": ariaDescribedBy,
 }: CodeEditorProps) {
   const codeMirrorLanguage = getCodeMirrorLanguage(language)
@@ -71,12 +74,14 @@ export function CodeEditor({
     [codeMirrorLanguage]
   )
 
+  const themeExtension = theme === "light" ? githubLight : oneDark
+
   return (
     <div className="relative">
       <CodeMirror
         value={value}
         onChange={onChange}
-        theme={oneDark}
+        theme={themeExtension}
         extensions={[languageExtension]}
         placeholder={placeholder}
         basicSetup={{
@@ -94,10 +99,14 @@ export function CodeEditor({
           "[&_.cm-scroller]:text-sm",
           "[&_.cm-content]:px-4",
           "[&_.cm-content]:py-4",
-          "[&_.cm-gutters]:bg-[#252526]",
-          "[&_.cm-gutters]:border-r",
-          "[&_.cm-gutters]:border-[#3e3e42]",
-          "[&_.cm-lineNumbers]:text-[#858585]",
+          theme === "dark" && "[&_.cm-gutters]:bg-[#252526]",
+          theme === "dark" && "[&_.cm-gutters]:border-r",
+          theme === "dark" && "[&_.cm-gutters]:border-[#3e3e42]",
+          theme === "dark" && "[&_.cm-lineNumbers]:text-[#858585]",
+          theme === "light" && "[&_.cm-gutters]:bg-[#f6f8fa]",
+          theme === "light" && "[&_.cm-gutters]:border-r",
+          theme === "light" && "[&_.cm-gutters]:border-[#d0d7de]",
+          theme === "light" && "[&_.cm-lineNumbers]:text-[#57606a]",
           className
         )}
       />

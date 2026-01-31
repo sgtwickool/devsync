@@ -226,17 +226,18 @@ export async function updateSnippet(snippetId: string, formData: FormData): Prom
 
       newOrganizationId = requestedOrgId
 
-      // Remove from any personal collections (collections are org-scoped)
-      if (existingSnippet.collections.length > 0) {
-        await prisma.snippetCollection.deleteMany({
-          where: { snippetId },
-        })
+      // Remove from any personal collections and tags (collections are org-scoped)
+      // Use transaction to ensure atomicity
+      if (existingSnippet.collections.length > 0 || existingSnippet.tags.length > 0) {
+        await prisma.$transaction([
+          prisma.snippetCollection.deleteMany({
+            where: { snippetId },
+          }),
+          prisma.snippetTag.deleteMany({
+            where: { snippetId },
+          }),
+        ])
       }
-
-      // Remove existing tag associations (we'll recreate them in the new org context)
-      await prisma.snippetTag.deleteMany({
-        where: { snippetId },
-      })
     } else if (requestedOrgId && existingSnippet.organizationId !== null) {
       // Trying to change organization - not allowed
       return { error: "Cannot move snippet between organizations" }
