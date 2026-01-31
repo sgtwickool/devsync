@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useEffect, useState } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { oneDark } from "@codemirror/theme-one-dark"
 import { githubLight } from "@uiw/codemirror-theme-github"
+import { useTheme } from "next-themes"
 import { javascript } from "@codemirror/lang-javascript"
 import { python } from "@codemirror/lang-python"
 import { java } from "@codemirror/lang-java"
@@ -64,9 +65,16 @@ export function CodeEditor({
   required,
   rows = 15,
   className,
-  theme = "dark",
+  theme: themeProp,
   "aria-describedby": ariaDescribedBy,
 }: CodeEditorProps) {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const codeMirrorLanguage = getCodeMirrorLanguage(language)
 
   const languageExtension = useMemo(
@@ -74,6 +82,8 @@ export function CodeEditor({
     [codeMirrorLanguage]
   )
 
+  // Determine theme: prop override > resolved theme > dark fallback
+  const theme = themeProp ?? (mounted && resolvedTheme === "light" ? "light" : "dark")
   const themeExtension = theme === "light" ? githubLight : oneDark
 
   return (

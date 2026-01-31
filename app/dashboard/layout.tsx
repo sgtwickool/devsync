@@ -4,6 +4,7 @@ import { Code2, LogOut } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "@/lib/auth"
 import { MobileNav } from "@/components/dashboard/mobile-nav"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export default async function DashboardLayout({
   children,
@@ -56,11 +57,13 @@ export default async function DashboardLayout({
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-foreground/70">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-foreground/70">
                 <span>{session.user.name || session.user.email}</span>
               </div>
-              
+
+              <ThemeToggle />
+
               <form
                 action={async () => {
                   "use server"

@@ -29,24 +29,25 @@
 
   .dark {
     --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --foreground: 0 0% 92%;
     --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 262 80% 65%;
+    --card-foreground: 0 0% 92%;
+    --popover: 240 10% 5%;
+    --popover-foreground: 0 0% 92%;
+    --primary: 262 50% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 173 70% 50%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 55%;
+    --accent: 173 40% 42%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 50% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262 80% 65%;
+    --border: 240 4% 18%;
+    --input: 240 4% 18%;
+    --ring: 262 45% 55%;
+    --primary-rgb: 140, 115, 180;
   }
 }
 
@@ -57,19 +58,19 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Global input styling for light mode */
+  /* Global input styling - theme aware */
   input[type="text"],
   input[type="email"],
   input[type="password"],
   input[type="search"],
   textarea,
   select {
-    @apply bg-white text-gray-900 border border-gray-300 rounded-lg shadow-sm;
+    @apply bg-background text-foreground border border-border rounded-lg shadow-sm;
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
   }
   input::placeholder,
   textarea::placeholder {
-    @apply text-gray-400;
+    @apply text-muted-foreground;
   }
 }
 
@@ -145,5 +146,14 @@
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-effect {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .hover-lift:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
   }
 }

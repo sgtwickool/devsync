@@ -66,9 +66,9 @@ export default async function OrganizationsPage() {
             <Link
               key={organization.id}
               href={`/dashboard/organizations/${organization.slug}`}
-              className="group block bg-gradient-to-br from-card via-card to-purple-50/30 dark:to-purple-950/10 border border-border rounded-xl p-6 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover-lift relative overflow-hidden"
+              className="group block bg-gradient-to-br from-card via-card to-primary/5 border border-border rounded-xl p-6 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/5 transition-all duration-300 hover-lift relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-purple-500/0 to-primary/8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="relative">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1 space-y-3 min-w-0">

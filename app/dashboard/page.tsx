@@ -156,7 +156,7 @@ export default async function DashboardPage({
             href="/dashboard/snippets/new"
             className="group relative inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-100 self-start sm:self-auto overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
             <span className="relative z-10">New Snippet</span>
           </Link>
@@ -252,7 +252,7 @@ export default async function DashboardPage({
                 href="/dashboard/snippets/new"
                 className="group relative inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-100 mt-6 overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
                 <span className="relative z-10">Create Your First Snippet</span>
               </Link>
@@ -265,10 +265,10 @@ export default async function DashboardPage({
             <Link
               key={snippet.id}
               href={`/dashboard/snippets/${snippet.id}`}
-              className="group block bg-gradient-to-br from-card via-card to-purple-50/30 dark:to-purple-950/10 border border-border rounded-xl p-6 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover-lift animate-fade-in relative overflow-hidden"
+              className="group block bg-gradient-to-br from-card via-card to-primary/5 dark:to-primary/5 border border-border rounded-xl p-6 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/5 transition-all duration-300 hover-lift animate-fade-in relative overflow-hidden"
               style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-purple-500/0 to-primary/8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">

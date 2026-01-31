@@ -85,8 +85,8 @@ export const theme = {
       "pulse-glow": "pulse-glow 2s ease-in-out infinite",
     },
     boxShadow: {
-      "glow": "0 0 20px rgba(139, 92, 246, 0.3)",
-      "glow-lg": "0 0 30px rgba(139, 92, 246, 0.4)",
+      "glow": "0 0 20px rgba(139, 92, 246, 0.2)",
+      "glow-lg": "0 0 30px rgba(139, 92, 246, 0.25)",
     },
   },
 };

@@ -3,25 +3,25 @@ import { Code2, Share2, Search, Lock } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/40 via-indigo-50/30 to-teal-50/20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.08),transparent_50%)]" />
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.06),transparent_50%)]" />
+      <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <Code2 className="w-8 h-8 text-primary" />
-              <span className="text-xl font-bold">DevSync</span>
+              <span className="text-xl font-bold text-foreground">DevSync</span>
             </div>
             <div className="flex gap-4">
-              <Link 
+              <Link
                 href="/login"
-                className="px-4 py-2 text-gray-700 hover:text-gray-900"
+                className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 Login
               </Link>
-              <Link 
+              <Link
                 href="/register"
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Sign Up
               </Link>
@@ -32,27 +32,27 @@ export default function Home() {
 
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-primary bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
             Your Team's Code Knowledge,
             <br />
-            <span className="bg-gradient-to-r from-primary via-purple-600 to-teal-500 bg-clip-text text-transparent">Organized & Accessible</span>
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">Organized & Accessible</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-            Stop searching through Slack threads and scattered wikis. 
-            DevSync helps your team capture, organize, and share code snippets, 
+          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Stop searching through Slack threads and scattered wikis.
+            DevSync helps your team capture, organize, and share code snippets,
             commands, and workflows in one beautiful place.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link 
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link
               href="/register"
-              className="group relative px-8 py-4 bg-primary text-white rounded-xl text-lg font-semibold hover:bg-primary/90 transition-all hover:shadow-xl hover:shadow-primary/40 hover:scale-105 active:scale-100 overflow-hidden"
+              className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-xl text-lg font-semibold hover:bg-primary/90 transition-all hover:shadow-xl hover:shadow-primary/20 dark:hover:shadow-primary/10 hover:scale-105 active:scale-100 overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative z-10">Get Started Free</span>
             </Link>
-            <Link 
+            <Link
               href="/login"
-              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl text-lg font-semibold hover:border-primary/50 hover:bg-primary/5 transition-all hover:shadow-lg hover:scale-105 active:scale-100"
+              className="px-8 py-4 border-2 border-border text-foreground rounded-xl text-lg font-semibold hover:border-primary/40 hover:bg-primary/5 transition-all hover:shadow-lg hover:scale-105 active:scale-100"
             >
               View Demo
             </Link>
@@ -86,19 +86,19 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string 
+function FeatureCard({ icon, title, description }: {
+  icon: React.ReactNode;
+  title: string;
+  description: string
 }) {
   return (
-    <div className="group relative p-6 border border-border rounded-xl bg-gradient-to-br from-white via-white to-purple-50/40 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950/20 shadow-sm hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover-lift overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-purple-500/0 to-primary/8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <div className="group relative p-6 border border-border rounded-xl bg-gradient-to-br from-card via-card to-primary/5 shadow-sm hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/5 transition-all duration-300 hover-lift overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative">
         <div className="mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">{icon}</div>
-        <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">{title}</h3>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
+        <h3 className="text-xl font-semibold mb-2 text-foreground">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
       </div>
     </div>
   );
